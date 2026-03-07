@@ -1,0 +1,124 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OFFICE_STAFF
+  EXECUTIVE
+}
+
+model User {
+  id           String  @id @default(uuid()) @db.Uuid
+  name         String
+  username     String  @unique
+  passwordHash String  @map("password_hash")
+  role         Role    @default(OFFICE_STAFF)
+  isActive     Boolean @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Optional link from a user account to an executive record (for EXECUTIVE role)
+  executiveId String?    @map("executive_id") @db.Uuid
+  executive   Executive? @relation("UserExecutiveLink", fields: [executiveId], references: [id], onDelete: SetNull)
+
+  // Checkout audit relations
+  checkoutsIssued   Checkout[] @relation("IssuedBy")
+  checkoutsReturned Checkout[] @relation("ReturnedBy")
+  checkoutsVoided   Checkout[] @relation("VoidedBy")
+
+  // Approval request relations
+  approvalRequestsMade     ApprovalRequest[] @relation("RequestedBy")
+  approvalRequestsReviewed ApprovalRequest[] @relation("ReviewedBy")
+
+  @@map("users")
+}
+
+model Executive {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String
+  isActive Boolean @default(true) @map("is_active")
+
+  checkouts Checkout[]
+  users     User[]     @relation("UserExecutiveLink")
+
+  @@map("executives")
+}
+
+model Route {
+  id          String  @id @default(uuid()) @db.Uuid
+  routeNumber String  @unique @map("route_number")
+  description String?
+  isActive    Boolean @default(true) @map("is_active")
+
+  checkouts Checkout[]
+
+  @@map("routes")
+}
+
+model Checkout {
+  id            String   @id @default(uuid()) @db.Uuid
+  invoiceNumber String   @map("invoice_number")
+
+  executiveId String    @map("executive_id") @db.Uuid
+  executive   Executive @relation(fields: [executiveId], references: [id])
+
+  routeId String @map("route_id") @db.Uuid
+  route   Route  @relation(fields: [routeId], references: [id])
+
+  outDatetime DateTime @map("out_datetime") @db.Timestamptz
+  outByUserId String   @map("out_by_user_id") @db.Uuid
+  outByUser   User     @relation("IssuedBy", fields: [outByUserId], references: [id])
+
+  inDatetime DateTime? @map("in_datetime") @db.Timestamptz
+  inByUserId String?   @map("in_by_user_id") @db.Uuid
+  inByUser   User?     @relation("ReturnedBy", fields: [inByUserId], references: [id])
+
+  voided         Boolean   @default(false)
+  voidReason     String?   @map("void_reason")
+  voidedByUserId String?   @map("voided_by_user_id") @db.Uuid
+  voidedByUser   User?     @relation("VoidedBy", fields: [voidedByUserId], references: [id])
+  voidedAt       DateTime? @map("voided_at") @db.Timestamptz
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // NOTE: A partial unique index enforcing one active checkout per invoice is added
+  // in the migration SQL below (Prisma schema doesn't support partial indexes natively).
+  // Constraint: UNIQUE(invoice_number) WHERE in_datetime IS NULL AND voided = false
+
+  @@map("checkouts")
+}
+
+// ── Approval Requests ────────────────────────────────────────────────────────
+
+enum ApprovalRequestType {
+  CHECKOUT_BACKDATE
+  RETURN_BACKDATE
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ApprovalRequest {
+  id                String              @id @default(uuid()) @db.Uuid
+  requestType       ApprovalRequestType @map("request_type")
+  requestedByUserId String              @map("requested_by_user_id") @db.Uuid
+  requestedBy       User                @relation("RequestedBy", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+  requestedAt       DateTime            @default(now()) @map("requested_at") @db.Timestamptz
+  status            ApprovalStatus      @default(PENDING)
+  reviewedByUserId  String?             @map("reviewed_by_user_id") @db.Uuid
+  reviewedBy        User?               @relation("ReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
+  reviewedAt        DateTime?           @map("reviewed_at") @db.Timestamptz
+  reviewReason      String?             @map("review_reason")
+  payload           Json
+
+  @@map("approval_requests")
+}
