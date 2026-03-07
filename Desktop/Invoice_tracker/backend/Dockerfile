@@ -8,9 +8,9 @@ COPY package*.json ./
 COPY prisma ./prisma/
 RUN npm ci
 
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.seed.json ./
 COPY src ./src/
-RUN npx prisma generate && npm run build
+RUN npx prisma generate && npm run build && npx tsc -p tsconfig.seed.json
 
 # ---- Production Stage ----
 FROM node:20-alpine AS production
