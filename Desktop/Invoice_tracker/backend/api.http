@@ -1,0 +1,351 @@
+# Invoice Tracker API – REST Client examples (VS Code REST Client extension)
+# Install: https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+#
+# Usage:
+#   1. Log in with one of the requests below and copy the returned token.
+#   2. Replace YOUR_JWT_TOKEN with the actual token.
+
+@baseUrl    = http://localhost:3000
+@adminToken = YOUR_JWT_TOKEN
+@staffToken = YOUR_JWT_TOKEN
+@execToken  = YOUR_JWT_TOKEN
+
+# ──────────────────────────────────────────────────────────────────────────────
+# HEALTH
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Health check
+GET {{baseUrl}}/health
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# AUTH
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Login as ADMIN  (copy token → @adminToken)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123!"
+}
+
+###
+
+### Login as OFFICE_STAFF  (copy token → @staffToken)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "office.staff",
+  "password": "staff123!"
+}
+
+###
+
+### Login as EXECUTIVE  (copy token → @execToken)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "john.smith",
+  "password": "exec123!"
+}
+
+###
+
+### Get current user (me)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{adminToken}}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# USERS  (ADMIN only)
+# ──────────────────────────────────────────────────────────────────────────────
+
+### List all users
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Get user by ID
+@userId = REPLACE_WITH_REAL_USER_ID
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Create an OFFICE_STAFF user
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Alice Tester",
+  "username": "alice.tester",
+  "password": "password123!",
+  "role": "OFFICE_STAFF"
+}
+
+###
+
+### Create an EXECUTIVE user linked to the seeded executive record
+POST {{baseUrl}}/users
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Jane Doe",
+  "username": "jane.doe",
+  "password": "password123!",
+  "role": "EXECUTIVE",
+  "executiveId": "00000000-0000-0000-0000-000000000002"
+}
+
+###
+
+### Deactivate a user
+PATCH {{baseUrl}}/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "isActive": false
+}
+
+###
+
+### Delete a user
+DELETE {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{adminToken}}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# EXECUTIVES  (ADMIN only)
+# ──────────────────────────────────────────────────────────────────────────────
+
+### List all executives
+GET {{baseUrl}}/executives
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Get executive by ID
+@execId = 00000000-0000-0000-0000-000000000001
+GET {{baseUrl}}/executives/{{execId}}
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Create executive
+POST {{baseUrl}}/executives
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "Bob Executive"
+}
+
+###
+
+### Update executive
+PATCH {{baseUrl}}/executives/{{execId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "John Smith (Updated)",
+  "isActive": true
+}
+
+###
+
+### Delete executive
+DELETE {{baseUrl}}/executives/{{execId}}
+Authorization: Bearer {{adminToken}}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ROUTES  (ADMIN only)
+# ──────────────────────────────────────────────────────────────────────────────
+
+### List all routes
+GET {{baseUrl}}/routes
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Get route by ID
+@routeId = REPLACE_WITH_REAL_ROUTE_ID
+GET {{baseUrl}}/routes/{{routeId}}
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Create route
+POST {{baseUrl}}/routes
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "routeNumber": "RT-004",
+  "description": "West District Route"
+}
+
+###
+
+### Update route
+PATCH {{baseUrl}}/routes/{{routeId}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "description": "Updated description"
+}
+
+###
+
+### Delete route
+DELETE {{baseUrl}}/routes/{{routeId}}
+Authorization: Bearer {{adminToken}}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CHECKOUTS  (ADMIN or OFFICE_STAFF)
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Issue invoices (batch) – use staff token
+# Replace routeId with a real UUID from GET /routes
+POST {{baseUrl}}/checkouts/issue
+Content-Type: application/json
+Authorization: Bearer {{staffToken}}
+
+{
+  "executiveId": "00000000-0000-0000-0000-000000000001",
+  "routeId": "REPLACE_WITH_REAL_ROUTE_ID",
+  "invoiceNumbers": ["INV-001", "INV-002", "INV-003"]
+}
+
+###
+
+### Issue with explicit outDatetime
+POST {{baseUrl}}/checkouts/issue
+Content-Type: application/json
+Authorization: Bearer {{staffToken}}
+
+{
+  "executiveId": "00000000-0000-0000-0000-000000000001",
+  "routeId": "REPLACE_WITH_REAL_ROUTE_ID",
+  "outDatetime": "2024-01-15T09:00:00Z",
+  "invoiceNumbers": ["INV-100", "INV-101"]
+}
+
+###
+
+### Return invoices (batch)
+POST {{baseUrl}}/checkouts/return
+Content-Type: application/json
+Authorization: Bearer {{staffToken}}
+
+{
+  "invoiceNumbers": ["INV-001", "INV-002"]
+}
+
+###
+
+### Return with explicit inDatetime
+POST {{baseUrl}}/checkouts/return
+Content-Type: application/json
+Authorization: Bearer {{staffToken}}
+
+{
+  "invoiceNumbers": ["INV-003"],
+  "inDatetime": "2024-01-16T17:30:00Z"
+}
+
+###
+
+### Try double-checkout (expect 207 with per-invoice error for INV-001)
+POST {{baseUrl}}/checkouts/issue
+Content-Type: application/json
+Authorization: Bearer {{staffToken}}
+
+{
+  "executiveId": "00000000-0000-0000-0000-000000000001",
+  "routeId": "REPLACE_WITH_REAL_ROUTE_ID",
+  "invoiceNumbers": ["INV-003"]
+}
+
+###
+
+### Outstanding checkouts (all)
+GET {{baseUrl}}/checkouts/outstanding
+Authorization: Bearer {{staffToken}}
+
+###
+
+### Outstanding filtered by executive
+GET {{baseUrl}}/checkouts/outstanding?executiveId=00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{staffToken}}
+
+###
+
+### Outstanding filtered by route
+GET {{baseUrl}}/checkouts/outstanding?routeId={{routeId}}
+Authorization: Bearer {{staffToken}}
+
+###
+
+### Outstanding older than 7 days
+GET {{baseUrl}}/checkouts/outstanding?olderThanDays=7
+Authorization: Bearer {{staffToken}}
+
+###
+
+### Void a checkout
+@checkoutId = REPLACE_WITH_REAL_CHECKOUT_ID
+POST {{baseUrl}}/checkouts/{{checkoutId}}/void
+Content-Type: application/json
+Authorization: Bearer {{staffToken}}
+
+{
+  "voidReason": "Issued in error"
+}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INVOICES
+# ──────────────────────────────────────────────────────────────────────────────
+
+### Invoice history  (any authenticated role)
+GET {{baseUrl}}/invoices/INV-001/history
+Authorization: Bearer {{staffToken}}
+
+###
+
+### Invoice with no history
+GET {{baseUrl}}/invoices/NONEXISTENT-999/history
+Authorization: Bearer {{staffToken}}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ME  (EXECUTIVE role)
+# ──────────────────────────────────────────────────────────────────────────────
+
+### My outstanding invoices
+GET {{baseUrl}}/me/outstanding
+Authorization: Bearer {{execToken}}
+
+###
+
+### My invoice history
+GET {{baseUrl}}/me/history
+Authorization: Bearer {{execToken}}
