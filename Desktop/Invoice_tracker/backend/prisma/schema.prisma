@@ -28,9 +28,10 @@ model User {
   executive   Executive? @relation("UserExecutiveLink", fields: [executiveId], references: [id], onDelete: SetNull)
 
   // Checkout audit relations
-  checkoutsIssued   Checkout[] @relation("IssuedBy")
-  checkoutsReturned Checkout[] @relation("ReturnedBy")
-  checkoutsVoided   Checkout[] @relation("VoidedBy")
+  checkoutsIssued          Checkout[] @relation("IssuedBy")
+  checkoutsReturned        Checkout[] @relation("ReturnedBy")
+  checkoutsVoided          Checkout[] @relation("VoidedBy")
+  checkoutsPaymentReceived Checkout[] @relation("PaymentReceivedBy")
 
   // Approval request relations
   approvalRequestsMade     ApprovalRequest[] @relation("RequestedBy")
@@ -84,6 +85,11 @@ model Checkout {
   voidedByUserId String?   @map("voided_by_user_id") @db.Uuid
   voidedByUser   User?     @relation("VoidedBy", fields: [voidedByUserId], references: [id])
   voidedAt       DateTime? @map("voided_at") @db.Timestamptz
+
+  paymentReceived          Boolean   @default(false) @map("payment_received")
+  paymentReceivedAt        DateTime? @map("payment_received_at") @db.Timestamptz
+  paymentReceivedByUserId  String?   @map("payment_received_by_user_id") @db.Uuid
+  paymentReceivedByUser    User?     @relation("PaymentReceivedBy", fields: [paymentReceivedByUserId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 

@@ -4,6 +4,7 @@ const map: Record<CheckoutStatus, string> = {
   OUTSTANDING: 'bg-amber-100 text-amber-800',
   RETURNED:    'bg-green-100 text-green-800',
   VOIDED:      'bg-gray-100  text-gray-600',
+  PAID:        'bg-blue-100  text-blue-800',
 };
 
 export default function StatusBadge({ status }: { status: CheckoutStatus }) {

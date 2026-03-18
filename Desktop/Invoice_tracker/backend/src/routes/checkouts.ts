@@ -4,7 +4,7 @@ import { Prisma, Role } from '@prisma/client';
 import { prisma } from '../prisma';
 import { authenticate, authorize } from '../middleware/auth';
 import { AuthRequest } from '../types';
-import { issueOne, returnOne } from '../services/checkoutService';
+import { issueOne, returnOne, markPaymentReceived } from '../services/checkoutService';
 
 const router = Router();
 
@@ -32,31 +32,42 @@ const voidSchema = z.object({
   voidReason: z.string().min(1),
 });
 
+const paymentSchema = z.object({
+  invoiceNumbers: z.array(z.string().min(1)).min(1),
+});
+
 // ── Prisma include / type helpers ────────────────────────────────────────────
 
 const checkoutInclude = {
-  executive:   { select: { id: true, name: true } },
-  route:       { select: { id: true, routeNumber: true } },
-  outByUser:   { select: { id: true, name: true } },
-  inByUser:    { select: { id: true, name: true } },
+  executive:              { select: { id: true, name: true } },
+  route:                  { select: { id: true, routeNumber: true } },
+  outByUser:              { select: { id: true, name: true } },
+  inByUser:               { select: { id: true, name: true } },
+  paymentReceivedByUser:  { select: { id: true, name: true } },
 } satisfies Prisma.CheckoutInclude;
 
 type CheckoutRow = Prisma.CheckoutGetPayload<{ include: typeof checkoutInclude }>;
 
 function formatCheckout(c: CheckoutRow) {
+  const status = c.voided ? 'VOIDED'
+    : c.paymentReceived ? 'PAID'
+    : c.inDatetime      ? 'RETURNED'
+    : 'OUTSTANDING';
   return {
-    id:            c.id,
-    invoiceNumber: c.invoiceNumber,
-    executive:     c.executive,
-    route:         c.route,
-    outDatetime:   c.outDatetime,
-    outByUser:     c.outByUser,
-    inDatetime:    c.inDatetime,
-    inByUser:      c.inByUser,
-    status:        c.voided ? 'VOIDED' : c.inDatetime ? 'RETURNED' : 'OUTSTANDING',
-    voided:        c.voided,
-    voidReason:    c.voidReason,
-    createdAt:     c.createdAt,
+    id:                     c.id,
+    invoiceNumber:          c.invoiceNumber,
+    executive:              c.executive,
+    route:                  c.route,
+    outDatetime:            c.outDatetime,
+    outByUser:              c.outByUser,
+    inDatetime:             c.inDatetime,
+    inByUser:               c.inByUser,
+    status,
+    voided:                 c.voided,
+    voidReason:             c.voidReason,
+    paymentReceived:        c.paymentReceived,
+    paymentReceivedAt:      c.paymentReceivedAt,
+    createdAt:              c.createdAt,
   };
 }
 
@@ -167,6 +178,28 @@ router.get('/outstanding', async (req, res, next) => {
     });
 
     res.json(rows.map(formatCheckout));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /checkouts/payment ──────────────────────────────────────────────────
+
+router.post('/payment', async (req: AuthRequest, res, next) => {
+  try {
+    const { invoiceNumbers } = paymentSchema.parse(req.body);
+    const userId = req.user!.userId;
+
+    const results = [];
+    for (const invoiceNumber of invoiceNumbers) {
+      const result = await prisma.$transaction(tx =>
+        markPaymentReceived(tx, invoiceNumber, userId)
+      );
+      results.push(result);
+    }
+
+    const allFailed = results.every(r => !r.success);
+    res.status(allFailed ? 422 : 207).json({ results });
   } catch (err) {
     next(err);
   }

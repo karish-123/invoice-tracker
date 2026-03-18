@@ -1,7 +1,7 @@
 // ── Derived strictly from API_CONTRACT.md / backend source ──────────────────
 
 export type Role = 'ADMIN' | 'OFFICE_STAFF' | 'EXECUTIVE';
-export type CheckoutStatus = 'OUTSTANDING' | 'RETURNED' | 'VOIDED';
+export type CheckoutStatus = 'OUTSTANDING' | 'RETURNED' | 'VOIDED' | 'PAID';
 
 export interface AuthUser {
   id:          string;
@@ -53,10 +53,12 @@ export interface Checkout {
   outByUser:     UserRef;
   inDatetime:    string | null;
   inByUser:      UserRef | null;
-  status:        CheckoutStatus;
-  voided:        boolean;
-  voidReason:    string | null;
-  createdAt:     string;
+  status:               CheckoutStatus;
+  voided:               boolean;
+  voidReason:           string | null;
+  paymentReceived:      boolean;
+  paymentReceivedAt:    string | null;
+  createdAt:            string;
 }
 
 export interface CheckoutHistory extends Checkout {

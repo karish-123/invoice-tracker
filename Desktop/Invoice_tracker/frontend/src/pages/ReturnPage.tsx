@@ -17,6 +17,12 @@ export default function ReturnPage() {
   const [error,       setError]       = useState('');
   const [loading,     setLoading]     = useState(false);
 
+  // Payment Received section
+  const [pmtInvoices, setPmtInvoices] = useState<string[]>([]);
+  const [pmtResults,  setPmtResults]  = useState<IssueResult[] | null>(null);
+  const [pmtError,    setPmtError]    = useState('');
+  const [pmtLoading,  setPmtLoading]  = useState(false);
+
   // Backdate modal (OFFICE_STAFF only)
   const [bdOpen,    setBdOpen]    = useState(false);
   const [bdDatetime,setBdDatetime]= useState('');
@@ -24,6 +30,23 @@ export default function ReturnPage() {
   const [bdLoading, setBdLoading] = useState(false);
   const [bdError,   setBdError]   = useState('');
   const [bdSuccess, setBdSuccess] = useState(false);
+
+  const handlePaymentSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setPmtError('');
+    if (!pmtInvoices.length) { setPmtError('Add at least one invoice number.'); return; }
+    setPmtLoading(true);
+    try {
+      const { results: res } = await api.markPaymentReceived(pmtInvoices);
+      setPmtResults(res);
+      setPmtInvoices([]);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setPmtError(msg ?? 'Request failed.');
+    } finally {
+      setPmtLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -114,6 +137,23 @@ export default function ReturnPage() {
       </form>
 
       {results && <BatchResultTable results={results} />}
+
+      {/* ── Payment Received ── */}
+      <h2 className="text-xl font-semibold">Payment Received</h2>
+      <form onSubmit={handlePaymentSubmit} className="card p-6 space-y-5">
+        <p className="text-sm text-gray-500">
+          Mark invoices as fully paid. Paid invoices are permanently closed and cannot be re-issued.
+        </p>
+        {pmtError && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{pmtError}</p>}
+
+        <InvoiceChipInput invoices={pmtInvoices} onChange={setPmtInvoices} label="Invoice Numbers" />
+
+        <button type="submit" disabled={pmtLoading} className="btn-primary w-full">
+          {pmtLoading ? 'Marking…' : 'Mark as Paid'}
+        </button>
+      </form>
+
+      {pmtResults && <BatchResultTable results={pmtResults} />}
 
       {/* Backdate approval modal */}
       {bdOpen && (

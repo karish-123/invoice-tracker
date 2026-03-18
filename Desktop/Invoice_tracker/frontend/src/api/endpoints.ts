@@ -68,13 +68,16 @@ export const deleteRoute = (id: string) =>
 // ── Checkouts (ADMIN + OFFICE_STAFF) ─────────────────────────────────────────
 
 export const issueInvoices = (data: {
-  executiveId: string; routeId: string;
+  executiveId?: string; routeId?: string;
   outDatetime?: string; invoiceNumbers: string[];
 }) => client.post<BatchResult>('/checkouts/issue', data).then(r => r.data);
 
 export const returnInvoices = (data: {
   invoiceNumbers: string[]; inDatetime?: string;
 }) => client.post<BatchResult>('/checkouts/return', data).then(r => r.data);
+
+export const markPaymentReceived = (invoiceNumbers: string[]) =>
+  client.post<BatchResult>('/checkouts/payment', { invoiceNumbers }).then(r => r.data);
 
 export const getOutstanding = (params?: {
   executiveId?: string; routeId?: string; olderThanDays?: number;

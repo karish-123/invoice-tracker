@@ -5,6 +5,7 @@ import Layout         from './components/Layout';
 
 import LoginPage          from './pages/LoginPage';
 import IssuePage          from './pages/IssuePage';
+import MasterInvoicePage  from './pages/MasterInvoicePage';
 import ReturnPage         from './pages/ReturnPage';
 import OutstandingPage    from './pages/OutstandingPage';
 import InvoiceHistoryPage from './pages/InvoiceHistoryPage';
@@ -41,6 +42,7 @@ export default function App() {
               {/* ADMIN + OFFICE_STAFF */}
               <Route element={<ProtectedRoute roles={['ADMIN', 'OFFICE_STAFF']} />}>
                 <Route path="/outstanding" element={<OutstandingPage />} />
+                <Route path="/master"      element={<MasterInvoicePage />} />
                 <Route path="/issue"       element={<IssuePage />} />
                 <Route path="/return"      element={<ReturnPage />} />
               </Route>

@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import * as api from '../api/endpoints';
-import type { Executive, AppRoute, IssueResult } from '../types';
+import type { Executive, IssueResult } from '../types';
 import InvoiceChipInput from '../components/InvoiceChipInput';
 import BatchResultTable  from '../components/BatchResultTable';
 import Spinner           from '../components/Spinner';
@@ -13,9 +13,7 @@ export default function IssuePage() {
   const isAdmin  = user?.role === 'ADMIN';
 
   const [executives,   setExecutives]   = useState<Executive[]>([]);
-  const [routes,       setRoutes]       = useState<AppRoute[]>([]);
   const [executiveId,  setExecutiveId]  = useState('');
-  const [routeId,      setRouteId]      = useState('');
   const [invoices,     setInvoices]     = useState<string[]>([]);
   const [outDatetime,  setOutDatetime]  = useState('');
   const [results,      setResults]      = useState<IssueResult[] | null>(null);
@@ -32,12 +30,9 @@ export default function IssuePage() {
   const [bdSuccess, setBdSuccess] = useState(false);
 
   useEffect(() => {
-    Promise.all([api.getExecutives(), api.getRoutes()])
-      .then(([execs, rts]) => {
-        setExecutives(execs.filter(e => e.isActive));
-        setRoutes(rts.filter(r => r.isActive));
-      })
-      .catch(() => setError('Failed to load executives / routes.'))
+    api.getExecutives()
+      .then(execs => setExecutives(execs.filter(e => e.isActive)))
+      .catch(() => setError('Failed to load executives.'))
       .finally(() => setFetching(false));
   }, []);
 
@@ -49,7 +44,7 @@ export default function IssuePage() {
     setLoading(true);
     try {
       const payload: Parameters<typeof api.issueInvoices>[0] = {
-        executiveId, routeId, invoiceNumbers: invoices,
+        executiveId, invoiceNumbers: invoices,
       };
       if (isAdmin && outDatetime) payload.outDatetime = new Date(outDatetime).toISOString();
       const { results: res } = await api.issueInvoices(payload);
@@ -64,8 +59,8 @@ export default function IssuePage() {
   };
 
   const openBackdate = () => {
-    if (!executiveId || !routeId) {
-      setError('Select an executive and route before requesting a backdate.');
+    if (!executiveId) {
+      setError('Select an executive before requesting a backdate.');
       return;
     }
     if (!invoices.length) {
@@ -88,7 +83,6 @@ export default function IssuePage() {
       await api.createApproval({
         requestType:       'CHECKOUT_BACKDATE',
         executiveId,
-        routeId,
         invoiceNumbers:    invoices,
         requestedDatetime: new Date(bdDatetime).toISOString(),
         reason:            bdReason.trim(),
@@ -106,7 +100,7 @@ export default function IssuePage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Issue Invoices</h1>
+      <h1 className="text-2xl font-bold">Issued Invoice</h1>
 
       <form onSubmit={handleSubmit} className="card p-6 space-y-5">
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</p>}
@@ -116,18 +110,6 @@ export default function IssuePage() {
           <select value={executiveId} onChange={e => setExecutiveId(e.target.value)} className="input" required>
             <option value="">Select executive…</option>
             {executives.map(ex => <option key={ex.id} value={ex.id}>{ex.name}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="label">Route</label>
-          <select value={routeId} onChange={e => setRouteId(e.target.value)} className="input" required>
-            <option value="">Select route…</option>
-            {routes.map(r => (
-              <option key={r.id} value={r.id}>
-                {r.routeNumber}{r.description ? ` — ${r.description}` : ''}
-              </option>
-            ))}
           </select>
         </div>
 
@@ -185,7 +167,6 @@ export default function IssuePage() {
               <div className="text-sm text-gray-600 bg-gray-50 rounded p-3 space-y-1">
                 <p><span className="font-medium">Invoices:</span> {invoices.join(', ')}</p>
                 <p><span className="font-medium">Executive:</span> {executives.find(e => e.id === executiveId)?.name}</p>
-                <p><span className="font-medium">Route:</span> {routes.find(r => r.id === routeId)?.routeNumber}</p>
               </div>
               <div>
                 <label className="label">Backdated Issue Date/Time *</label>
