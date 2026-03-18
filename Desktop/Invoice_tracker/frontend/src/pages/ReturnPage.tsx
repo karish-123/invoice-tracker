@@ -102,7 +102,7 @@ export default function ReturnPage() {
 
         <div className="flex flex-col gap-2">
           <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Returning…' : 'Return Invoices'}
+            {loading ? 'Submitting…' : 'Submit'}
           </button>
 
           {!isAdmin && (

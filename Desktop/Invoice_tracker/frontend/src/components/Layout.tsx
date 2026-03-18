@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import logo from '../assets/logo.svg';
+import logo from '../assets/infobells_logo.jpeg';
 
 interface NavItem { to: string; label: string; section?: string }
 
@@ -49,7 +49,7 @@ export default function Layout() {
         <div className="px-4 py-4 border-b border-gray-700">
           <div className="flex items-center gap-2 mb-1">
             <img src={logo} alt="Infobells" className="h-8 w-8 rounded" />
-            <p className="font-bold text-sm leading-tight">Infobells Tracker</p>
+            <p className="font-bold text-sm leading-tight">Infobells Invoice Tracker</p>
           </div>
           <p className="text-xs text-gray-300 mt-1 truncate">{user?.name}</p>
           <span className="inline-block mt-1 text-xs bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded">

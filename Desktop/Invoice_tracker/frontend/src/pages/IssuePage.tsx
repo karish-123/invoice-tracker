@@ -148,7 +148,7 @@ export default function IssuePage() {
 
         <div className="flex flex-col gap-2">
           <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Issuing…' : 'Issue Invoices'}
+            {loading ? 'Submitting…' : 'Submit'}
           </button>
 
           {!isAdmin && (
