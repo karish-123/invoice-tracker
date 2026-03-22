@@ -15,7 +15,7 @@ export default function Layout() {
     ...(user?.role !== 'EXECUTIVE' ? [
       { to: '/outstanding', label: 'Outstanding' },
       { to: '/master',      label: 'Master Invoices' },
-      { to: '/pending',     label: 'Pending Invoices' },
+      { to: '/pending',     label: 'Invoices for Delivery' },
       { to: '/issue',       label: 'Issued Invoices' },
       { to: '/return',      label: 'Return Invoices' },
     ] : []),
