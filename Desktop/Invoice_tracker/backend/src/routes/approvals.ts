@@ -174,7 +174,7 @@ router.post('/:id/approve', async (req: AuthRequest, res: Response, next: NextFu
 
       for (const invoiceNumber of payload.invoiceNumbers) {
         const r = await prisma.$transaction(tx =>
-          issueOne(tx, invoiceNumber, payload.executiveId!, payload.routeId!, requestedAt, userId)
+          issueOne(tx, invoiceNumber, payload.executiveId!, payload.routeId, requestedAt, userId)
         );
         results.push(r);
       }

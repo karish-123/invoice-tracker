@@ -98,7 +98,7 @@ router.get('/history.csv', async (req: AuthRequest, res: Response, next: NextFun
       ['Invoice #', 'Executive', 'Route', 'Issued At', 'Issued By', 'Returned At', 'Returned By', 'Status', 'Void Reason'],
       rows.map(r => [
         r.invoiceNumber,
-        r.executive.name,
+        r.executive?.name ?? '',
         r.route.routeNumber,
         fmtDate(r.outDatetime),
         r.outByUser.name,
@@ -159,7 +159,7 @@ router.get('/outstanding.csv', async (req: AuthRequest, res: Response, next: Nex
       ['Invoice #', 'Executive', 'Route', 'Issued At', 'Days Out', 'Issued By'],
       rows.map(r => [
         r.invoiceNumber,
-        r.executive.name,
+        r.executive?.name ?? '',
         r.route.routeNumber,
         fmtDate(r.outDatetime),
         String(Math.floor((now - r.outDatetime.getTime()) / 86_400_000)),

@@ -28,7 +28,7 @@ export default function MasterInvoicePage() {
 
     setLoading(true);
     try {
-      const { results: res } = await api.issueInvoices({ routeId, invoiceNumbers: invoices });
+      const { results: res } = await api.addMasterInvoices({ routeId, invoiceNumbers: invoices });
       setResults(res);
       setInvoices([]);
     } catch (err: unknown) {
@@ -43,7 +43,7 @@ export default function MasterInvoicePage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Master Invoice</h1>
+      <h1 className="text-2xl font-bold">Master Invoices</h1>
 
       <form onSubmit={handleSubmit} className="card p-6 space-y-5">
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</p>}

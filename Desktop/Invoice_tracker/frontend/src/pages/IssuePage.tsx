@@ -100,7 +100,7 @@ export default function IssuePage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Issued Invoice</h1>
+      <h1 className="text-2xl font-bold">Issued Invoices</h1>
 
       <form onSubmit={handleSubmit} className="card p-6 space-y-5">
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</p>}

@@ -66,6 +66,15 @@ export interface CheckoutHistory extends Checkout {
   voidedAt:     string | null;
 }
 
+export interface PendingInvoice {
+  id:            string;
+  invoiceNumber: string;
+  route:         { id: string; routeNumber: string };
+  outDatetime:   string;
+  outByUser:     UserRef;
+  voided:        boolean;
+}
+
 export interface IssueResult {
   invoiceNumber: string;
   success:       boolean;

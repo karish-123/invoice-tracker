@@ -14,8 +14,9 @@ export default function Layout() {
     // Operations — ADMIN or OFFICE_STAFF
     ...(user?.role !== 'EXECUTIVE' ? [
       { to: '/outstanding', label: 'Outstanding' },
-      { to: '/master',      label: 'Master Invoice' },
-      { to: '/issue',       label: 'Issued Invoice' },
+      { to: '/master',      label: 'Master Invoices' },
+      { to: '/pending',     label: 'Pending Invoices' },
+      { to: '/issue',       label: 'Issued Invoices' },
       { to: '/return',      label: 'Return Invoices' },
     ] : []),
     // Search — all roles

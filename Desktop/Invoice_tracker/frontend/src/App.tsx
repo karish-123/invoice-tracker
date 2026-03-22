@@ -15,6 +15,7 @@ import UsersPage          from './pages/admin/UsersPage';
 import ExecutivesPage     from './pages/admin/ExecutivesPage';
 import RoutesAdminPage    from './pages/admin/RoutesAdminPage';
 import MyOutstandingPage  from './pages/executive/MyOutstandingPage';
+import PendingInvoicesPage from './pages/PendingInvoicesPage';
 
 function RoleRedirect() {
   const { user } = useAuth();
@@ -43,6 +44,7 @@ export default function App() {
               <Route element={<ProtectedRoute roles={['ADMIN', 'OFFICE_STAFF']} />}>
                 <Route path="/outstanding" element={<OutstandingPage />} />
                 <Route path="/master"      element={<MasterInvoicePage />} />
+                <Route path="/pending"     element={<PendingInvoicesPage />} />
                 <Route path="/issue"       element={<IssuePage />} />
                 <Route path="/return"      element={<ReturnPage />} />
               </Route>

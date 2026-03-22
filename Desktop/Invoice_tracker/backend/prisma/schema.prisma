@@ -66,8 +66,8 @@ model Checkout {
   id            String   @id @default(uuid()) @db.Uuid
   invoiceNumber String   @map("invoice_number")
 
-  executiveId String    @map("executive_id") @db.Uuid
-  executive   Executive @relation(fields: [executiveId], references: [id])
+  executiveId String?    @map("executive_id") @db.Uuid
+  executive   Executive? @relation(fields: [executiveId], references: [id])
 
   routeId String @map("route_id") @db.Uuid
   route   Route  @relation(fields: [routeId], references: [id])

@@ -4,7 +4,7 @@ import type {
   LoginResponse, User, Executive, AppRoute,
   Checkout, BatchResult, InvoiceHistory, MeOutstanding, MeHistoryItem,
   ApprovalRequest, ApprovalActionResult, ApprovalStatus, CheckoutHistory,
-  ApprovalRequestType,
+  ApprovalRequestType, PendingInvoice,
 } from '../types';
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -66,6 +66,13 @@ export const deleteRoute = (id: string) =>
   client.delete(`/routes/${id}`);
 
 // ── Checkouts (ADMIN + OFFICE_STAFF) ─────────────────────────────────────────
+
+export const addMasterInvoices = (data: {
+  routeId: string; invoiceNumbers: string[];
+}) => client.post<BatchResult>('/checkouts/master', data).then(r => r.data);
+
+export const getPendingInvoices = (params?: { routeId?: string }) =>
+  client.get<PendingInvoice[]>('/checkouts/pending', { params }).then(r => r.data);
 
 export const issueInvoices = (data: {
   executiveId?: string; routeId?: string;
