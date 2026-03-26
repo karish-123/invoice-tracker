@@ -59,6 +59,63 @@ export async function addMasterOne(
 }
 
 /**
+ * Add a single old/legacy invoice — stored as immediately returned so it can
+ * be issued from the Issued Invoices tab without going through Master.
+ */
+export async function addOldInvoiceOne(
+  tx:            Tx,
+  invoiceNumber: string,
+  routeId:       string,
+  addedAt:       Date,
+  userId:        string,
+): Promise<IssueOneResult> {
+  try {
+    // Block if already paid
+    const paid = await tx.$queryRaw<{ id: string }[]>`
+      SELECT id FROM checkouts
+      WHERE invoice_number = ${invoiceNumber}
+        AND payment_received = true
+        AND voided = false
+      LIMIT 1
+    `;
+    if (paid.length > 0) {
+      return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} has been paid and cannot be re-added` };
+    }
+
+    // Block if already has an active/pending entry
+    const existing = await tx.$queryRaw<{ id: string }[]>`
+      SELECT id FROM checkouts
+      WHERE invoice_number = ${invoiceNumber}
+        AND in_datetime IS NULL
+        AND voided = false
+      FOR UPDATE
+    `;
+    if (existing.length > 0) {
+      return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} is already in the system (pending or checked out)` };
+    }
+
+    const checkout = await tx.checkout.create({
+      data: {
+        invoiceNumber,
+        routeId,
+        outDatetime:  addedAt,
+        outByUserId:  userId,
+        inDatetime:   addedAt,
+        inByUserId:   userId,
+      },
+    });
+
+    return { invoiceNumber, success: true, checkoutId: checkout.id };
+  } catch (err) {
+    return {
+      invoiceNumber,
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to add old invoice',
+    };
+  }
+}
+
+/**
  * Issue a single invoice inside an existing Prisma transaction.
  * If a pending checkout (no executive) exists, assigns the executive to it.
  * If routeId is provided and no pending checkout exists, creates a new one.
@@ -117,9 +174,22 @@ export async function issueOne(
       return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} is already checked out` };
     }
 
-    // No pending and no active — create fresh only if routeId is provided
+    // No pending and no active — try to find routeId from a returned unpaid checkout
     if (!routeId) {
-      return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} not found in pending pool. Add it via Master Invoices first.` };
+      const returned = await tx.$queryRaw<{ route_id: string }[]>`
+        SELECT route_id FROM checkouts
+        WHERE invoice_number = ${invoiceNumber}
+          AND in_datetime IS NOT NULL
+          AND voided = false
+          AND payment_received = false
+        ORDER BY in_datetime DESC
+        LIMIT 1
+      `;
+      if (returned.length > 0) {
+        routeId = returned[0].route_id;
+      } else {
+        return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} not found in pending pool. Add it via Master Invoices first.` };
+      }
     }
 
     const checkout = await tx.checkout.create({

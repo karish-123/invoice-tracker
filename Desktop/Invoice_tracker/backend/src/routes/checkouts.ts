@@ -4,7 +4,7 @@ import { Prisma, Role } from '@prisma/client';
 import { prisma } from '../prisma';
 import { authenticate, authorize } from '../middleware/auth';
 import { AuthRequest } from '../types';
-import { addMasterOne, issueOne, returnOne, markPaymentReceived } from '../services/checkoutService';
+import { addMasterOne, addOldInvoiceOne, issueOne, returnOne, markPaymentReceived } from '../services/checkoutService';
 
 const router = Router();
 
@@ -17,6 +17,11 @@ const BACKDATE_TOLERANCE_MS = 5 * 60 * 1000;
 // ── Zod schemas ──────────────────────────────────────────────────────────────
 
 const masterSchema = z.object({
+  routeId:        z.string().uuid(),
+  invoiceNumbers: z.array(z.string().min(1)).min(1),
+});
+
+const oldInvoiceSchema = z.object({
   routeId:        z.string().uuid(),
   invoiceNumbers: z.array(z.string().min(1)).min(1),
 });
@@ -94,6 +99,36 @@ router.post('/master', async (req: AuthRequest, res, next) => {
     for (const invoiceNumber of invoiceNumbers) {
       const result = await prisma.$transaction(tx =>
         addMasterOne(tx, invoiceNumber, routeId, addedAt, userId)
+      );
+      results.push(result);
+    }
+
+    const allFailed = results.every(r => !r.success);
+    res.status(allFailed ? 422 : 207).json({ results });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /checkouts/old-invoices ─────────────────────────────────────────────
+// Records legacy invoices as already-returned so they can be issued directly.
+
+router.post('/old-invoices', async (req: AuthRequest, res, next) => {
+  try {
+    const { routeId, invoiceNumbers } = oldInvoiceSchema.parse(req.body);
+    const addedAt = new Date();
+    const userId  = req.user!.userId;
+
+    const route = await prisma.route.findUnique({ where: { id: routeId } });
+    if (!route?.isActive) {
+      res.status(400).json({ error: 'Route not found or inactive' });
+      return;
+    }
+
+    const results = [];
+    for (const invoiceNumber of invoiceNumbers) {
+      const result = await prisma.$transaction(tx =>
+        addOldInvoiceOne(tx, invoiceNumber, routeId, addedAt, userId)
       );
       results.push(result);
     }

@@ -71,6 +71,10 @@ export const addMasterInvoices = (data: {
   routeId: string; invoiceNumbers: string[];
 }) => client.post<BatchResult>('/checkouts/master', data).then(r => r.data);
 
+export const addOldInvoices = (data: {
+  routeId: string; invoiceNumbers: string[];
+}) => client.post<BatchResult>('/checkouts/old-invoices', data).then(r => r.data);
+
 export const getPendingInvoices = (params?: { routeId?: string }) =>
   client.get<PendingInvoice[]>('/checkouts/pending', { params }).then(r => r.data);
 
