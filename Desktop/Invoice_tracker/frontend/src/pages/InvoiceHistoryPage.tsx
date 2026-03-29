@@ -109,8 +109,17 @@ export default function InvoiceHistoryPage() {
     return params;
   };
 
+  const [routeSort, setRouteSort] = useState<'asc' | 'desc' | null>(null);
+
   const allRows: CheckoutHistory[] = singleData ? singleData.history : (searchRows ?? []);
   const hasResults = singleData !== null || searchRows !== null;
+
+  const displayRows = routeSort
+    ? [...allRows].sort((a, b) => {
+        const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
+        return routeSort === 'asc' ? cmp : -cmp;
+      })
+    : allRows;
 
   return (
     <div className="space-y-6">
@@ -224,7 +233,12 @@ export default function InvoiceHistoryPage() {
                     <th className="th">Invoice #</th>
                     <th className="th">Issued At</th>
                     <th className="th">Executive</th>
-                    <th className="th">Route</th>
+                    <th
+                      className="th cursor-pointer select-none whitespace-nowrap"
+                      onClick={() => setRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
+                    >
+                      Route {routeSort === 'asc' ? '↑' : routeSort === 'desc' ? '↓' : '↕'}
+                    </th>
                     <th className="th">Issued By</th>
                     <th className="th">Returned At</th>
                     <th className="th">Returned By</th>
@@ -233,7 +247,7 @@ export default function InvoiceHistoryPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {allRows.map(c => <HistoryRow key={c.id} c={c} />)}
+                  {displayRows.map(c => <HistoryRow key={c.id} c={c} />)}
                 </tbody>
               </table>
             </div>

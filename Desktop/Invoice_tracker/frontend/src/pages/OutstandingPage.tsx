@@ -21,6 +21,9 @@ export default function OutstandingPage() {
   const [filterRoute, setFilterRoute]= useState('');
   const [filterDays,  setFilterDays] = useState('');
 
+  // Sort
+  const [routeSort, setRouteSort] = useState<'asc' | 'desc' | null>(null);
+
   // Void modal
   const [voidTarget,  setVoidTarget] = useState<Checkout | null>(null);
   const [voidReason,  setVoidReason] = useState('');
@@ -130,7 +133,12 @@ export default function OutstandingPage() {
               <tr>
                 <th className="th">Invoice #</th>
                 <th className="th">Executive</th>
-                <th className="th">Route</th>
+                <th
+                  className="th cursor-pointer select-none whitespace-nowrap"
+                  onClick={() => setRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
+                >
+                  Route {routeSort === 'asc' ? '↑' : routeSort === 'desc' ? '↓' : '↕'}
+                </th>
                 <th className="th">Issued</th>
                 <th className="th">Days Out</th>
                 <th className="th">Issued By</th>
@@ -142,7 +150,13 @@ export default function OutstandingPage() {
               {rows.length === 0 && (
                 <tr><td colSpan={8} className="td text-center text-gray-400 py-8">No outstanding invoices</td></tr>
               )}
-              {rows.map(row => (
+              {(routeSort
+                ? [...rows].sort((a, b) => {
+                    const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
+                    return routeSort === 'asc' ? cmp : -cmp;
+                  })
+                : rows
+              ).map(row => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                   <td className="td">{row.executive.name}</td>

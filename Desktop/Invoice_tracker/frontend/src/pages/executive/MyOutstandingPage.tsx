@@ -13,6 +13,8 @@ export default function MyOutstandingPage() {
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState('');
   const [showHistory, setShowHistory] = useState(false);
+  const [outRouteSort,  setOutRouteSort]  = useState<'asc' | 'desc' | null>(null);
+  const [histRouteSort, setHistRouteSort] = useState<'asc' | 'desc' | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -45,7 +47,12 @@ export default function MyOutstandingPage() {
           <thead className="bg-gray-50 border-b">
             <tr>
               <th className="th">Invoice #</th>
-              <th className="th">Route</th>
+              <th
+                className="th cursor-pointer select-none whitespace-nowrap"
+                onClick={() => setOutRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
+              >
+                Route {outRouteSort === 'asc' ? '↑' : outRouteSort === 'desc' ? '↓' : '↕'}
+              </th>
               <th className="th">Issued At</th>
               <th className="th">Days Out</th>
               <th className="th">Issued By</th>
@@ -60,7 +67,13 @@ export default function MyOutstandingPage() {
                 </td>
               </tr>
             )}
-            {outstanding.map(row => (
+            {(outRouteSort
+              ? [...outstanding].sort((a, b) => {
+                  const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
+                  return outRouteSort === 'asc' ? cmp : -cmp;
+                })
+              : outstanding
+            ).map(row => (
               <tr key={row.id} className="hover:bg-gray-50">
                 <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                 <td className="td">{row.route.routeNumber}</td>
@@ -94,14 +107,25 @@ export default function MyOutstandingPage() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="th">Invoice #</th>
-                <th className="th">Route</th>
+                <th
+                  className="th cursor-pointer select-none whitespace-nowrap"
+                  onClick={() => setHistRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
+                >
+                  Route {histRouteSort === 'asc' ? '↑' : histRouteSort === 'desc' ? '↓' : '↕'}
+                </th>
                 <th className="th">Issued At</th>
                 <th className="th">Returned At</th>
                 <th className="th">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {history.map(row => (
+              {(histRouteSort
+                ? [...history].sort((a, b) => {
+                    const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
+                    return histRouteSort === 'asc' ? cmp : -cmp;
+                  })
+                : history
+              ).map(row => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                   <td className="td">{row.route.routeNumber}</td>
