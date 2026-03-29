@@ -8,12 +8,94 @@ import { buildExportUrl } from '../api/endpoints';
 
 const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString() : '—';
 
-function HistoryRow({ c }: { c: CheckoutHistory }) {
+function HistoryRow({
+  c, isAdmin, routes, executives, onUpdated,
+}: {
+  c: CheckoutHistory;
+  isAdmin: boolean;
+  routes: AppRoute[];
+  executives: Executive[];
+  onUpdated: (updated: CheckoutHistory) => void;
+}) {
+  const [editing,  setEditing]  = useState(false);
+  const [routeId,  setRouteId]  = useState(c.route.id);
+  const [execId,   setExecId]   = useState(c.executive?.id ?? '');
+  const [saving,   setSaving]   = useState(false);
+  const [saveErr,  setSaveErr]  = useState('');
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveErr('');
+    try {
+      const payload: { routeId?: string; executiveId?: string | null } = {};
+      if (routeId !== c.route.id) payload.routeId = routeId;
+      if (execId  !== (c.executive?.id ?? '')) payload.executiveId = execId || null;
+      if (Object.keys(payload).length === 0) { setEditing(false); setSaving(false); return; }
+      const updated = await api.updateCheckout(c.id, payload);
+      onUpdated(updated);
+      setEditing(false);
+    } catch {
+      setSaveErr('Save failed.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setRouteId(c.route.id);
+    setExecId(c.executive?.id ?? '');
+    setSaveErr('');
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <tr className="bg-blue-50">
+        <td className="td font-mono text-xs">{c.invoiceNumber}</td>
+        <td className="td whitespace-nowrap">{fmt(c.outDatetime)}</td>
+        <td className="td">
+          <select
+            value={execId}
+            onChange={e => setExecId(e.target.value)}
+            className="input text-xs py-0.5"
+          >
+            <option value="">— none —</option>
+            {executives.map(ex => <option key={ex.id} value={ex.id}>{ex.name}</option>)}
+          </select>
+        </td>
+        <td className="td">
+          <select
+            value={routeId}
+            onChange={e => setRouteId(e.target.value)}
+            className="input text-xs py-0.5"
+          >
+            {routes.map(r => <option key={r.id} value={r.id}>{r.routeNumber}</option>)}
+          </select>
+        </td>
+        <td className="td">{c.outByUser.name}</td>
+        <td className="td whitespace-nowrap">{fmt(c.inDatetime)}</td>
+        <td className="td">{c.inByUser?.name ?? '—'}</td>
+        <td className="td"><StatusBadge status={c.status} /></td>
+        <td className="td text-xs" colSpan={2}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button onClick={handleSave} disabled={saving} className="btn-primary text-xs py-0.5 px-2">
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button onClick={handleCancel} disabled={saving} className="btn-ghost text-xs py-0.5 px-2">
+              Cancel
+            </button>
+            {saveErr && <span className="text-red-600 text-xs">{saveErr}</span>}
+          </div>
+        </td>
+      </tr>
+    );
+  }
+
   return (
     <tr className="hover:bg-gray-50">
       <td className="td font-mono text-xs">{c.invoiceNumber}</td>
       <td className="td whitespace-nowrap">{fmt(c.outDatetime)}</td>
-      <td className="td">{c.executive.name}</td>
+      <td className="td">{c.executive?.name ?? '—'}</td>
       <td className="td">{c.route.routeNumber}</td>
       <td className="td">{c.outByUser.name}</td>
       <td className="td whitespace-nowrap">{fmt(c.inDatetime)}</td>
@@ -22,6 +104,16 @@ function HistoryRow({ c }: { c: CheckoutHistory }) {
       <td className="td text-xs text-gray-500 max-w-xs truncate" title={c.voidReason ?? ''}>
         {c.voidReason ?? '—'}
       </td>
+      {isAdmin && (
+        <td className="td">
+          <button
+            onClick={() => setEditing(true)}
+            className="text-xs text-blue-600 hover:underline"
+          >
+            Edit
+          </button>
+        </td>
+      )}
     </tr>
   );
 }
@@ -29,6 +121,7 @@ function HistoryRow({ c }: { c: CheckoutHistory }) {
 export default function InvoiceHistoryPage() {
   const { user } = useAuth();
   const isExecutive = user?.role === 'EXECUTIVE';
+  const isAdmin     = user?.role === 'ADMIN';
 
   const [query,      setQuery]      = useState('');
   const [singleData, setSingleData] = useState<InvoiceHistory | null>(null);
@@ -113,6 +206,17 @@ export default function InvoiceHistoryPage() {
 
   const allRows: CheckoutHistory[] = singleData ? singleData.history : (searchRows ?? []);
   const hasResults = singleData !== null || searchRows !== null;
+
+  const handleRowUpdated = (updated: CheckoutHistory) => {
+    if (singleData) {
+      setSingleData({
+        ...singleData,
+        history: singleData.history.map(r => r.id === updated.id ? updated : r),
+      });
+    } else if (searchRows) {
+      setSearchRows(searchRows.map(r => r.id === updated.id ? updated : r));
+    }
+  };
 
   const displayRows = routeSort
     ? [...allRows].sort((a, b) => {
@@ -244,10 +348,20 @@ export default function InvoiceHistoryPage() {
                     <th className="th">Returned By</th>
                     <th className="th">Status</th>
                     <th className="th">Void Reason</th>
+                    {isAdmin && <th className="th" />}
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {displayRows.map(c => <HistoryRow key={c.id} c={c} />)}
+                  {displayRows.map(c => (
+                    <HistoryRow
+                      key={c.id}
+                      c={c}
+                      isAdmin={isAdmin}
+                      routes={routes}
+                      executives={executives}
+                      onUpdated={handleRowUpdated}
+                    />
+                  ))}
                 </tbody>
               </table>
             </div>

@@ -41,6 +41,11 @@ const voidSchema = z.object({
   voidReason: z.string().min(1),
 });
 
+const editCheckoutSchema = z.object({
+  routeId:     z.string().uuid().optional(),
+  executiveId: z.string().uuid().nullable().optional(),
+});
+
 const paymentSchema = z.object({
   invoiceNumbers: z.array(z.string().min(1)).min(1),
 });
@@ -294,6 +299,41 @@ router.post('/payment', async (req: AuthRequest, res, next) => {
 
     const allFailed = results.every(r => !r.success);
     res.status(allFailed ? 422 : 207).json({ results });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── PATCH /checkouts/:id ─────────────────────────────────────────────────────
+// ADMIN only — correct a wrong route or executive on any checkout.
+
+router.patch('/:id', authenticate, authorize(Role.ADMIN), async (req: AuthRequest, res, next) => {
+  try {
+    const data = editCheckoutSchema.parse(req.body);
+
+    const existing = await prisma.checkout.findUnique({ where: { id: req.params.id } });
+    if (!existing) { res.status(404).json({ error: 'Checkout not found' }); return; }
+
+    if (data.routeId) {
+      const route = await prisma.route.findUnique({ where: { id: data.routeId } });
+      if (!route?.isActive) { res.status(400).json({ error: 'Route not found or inactive' }); return; }
+    }
+
+    if (data.executiveId) {
+      const exec = await prisma.executive.findUnique({ where: { id: data.executiveId } });
+      if (!exec?.isActive) { res.status(400).json({ error: 'Executive not found or inactive' }); return; }
+    }
+
+    const updated = await prisma.checkout.update({
+      where: { id: req.params.id },
+      data: {
+        ...(data.routeId     !== undefined && { routeId:     data.routeId }),
+        ...(data.executiveId !== undefined && { executiveId: data.executiveId }),
+      },
+      include: checkoutInclude,
+    });
+
+    res.json(formatCheckout(updated));
   } catch (err) {
     next(err);
   }

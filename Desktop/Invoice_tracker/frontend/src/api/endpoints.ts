@@ -97,6 +97,9 @@ export const getOutstanding = (params?: {
 export const voidCheckout = (id: string, voidReason: string) =>
   client.post<Checkout>(`/checkouts/${id}/void`, { voidReason }).then(r => r.data);
 
+export const updateCheckout = (id: string, data: { routeId?: string; executiveId?: string | null }) =>
+  client.patch<CheckoutHistory>(`/checkouts/${id}`, data).then(r => r.data);
+
 // ── Invoices (any authenticated) ──────────────────────────────────────────────
 
 export const getInvoiceHistory = (invoiceNumber: string) =>
