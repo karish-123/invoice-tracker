@@ -13,31 +13,39 @@ router.use(authenticate);
 // ── Shared include for full checkout history rows ─────────────────────────────
 
 const historyInclude = {
-  executive:    { select: { id: true, name: true } },
-  route:        { select: { id: true, routeNumber: true } },
-  outByUser:    { select: { id: true, name: true } },
-  inByUser:     { select: { id: true, name: true } },
-  voidedByUser: { select: { id: true, name: true } },
+  executive:             { select: { id: true, name: true } },
+  route:                 { select: { id: true, routeNumber: true } },
+  outByUser:             { select: { id: true, name: true } },
+  inByUser:              { select: { id: true, name: true } },
+  voidedByUser:          { select: { id: true, name: true } },
+  paymentReceivedByUser: { select: { id: true, name: true } },
 } satisfies Prisma.CheckoutInclude;
 
 type HistoryRow = Prisma.CheckoutGetPayload<{ include: typeof historyInclude }>;
 
 function formatHistoryRow(c: HistoryRow) {
+  const status = c.voided ? 'VOIDED'
+    : c.paymentReceived ? 'PAID'
+    : c.inDatetime      ? 'RETURNED'
+    : 'OUTSTANDING';
   return {
-    id:            c.id,
-    invoiceNumber: c.invoiceNumber,
-    executive:     c.executive,
-    route:         c.route,
-    outDatetime:   c.outDatetime,
-    outByUser:     c.outByUser,
-    inDatetime:    c.inDatetime,
-    inByUser:      c.inByUser,
-    status:        c.voided ? 'VOIDED' : c.inDatetime ? 'RETURNED' : 'OUTSTANDING',
-    voided:        c.voided,
-    voidReason:    c.voidReason,
-    voidedByUser:  c.voidedByUser,
-    voidedAt:      c.voidedAt,
-    createdAt:     c.createdAt,
+    id:                    c.id,
+    invoiceNumber:         c.invoiceNumber,
+    executive:             c.executive,
+    route:                 c.route,
+    outDatetime:           c.outDatetime,
+    outByUser:             c.outByUser,
+    inDatetime:            c.inDatetime,
+    inByUser:              c.inByUser,
+    status,
+    voided:                c.voided,
+    voidReason:            c.voidReason,
+    voidedByUser:          c.voidedByUser,
+    voidedAt:              c.voidedAt,
+    paymentReceived:       c.paymentReceived,
+    paymentReceivedAt:     c.paymentReceivedAt,
+    paymentReceivedByUser: c.paymentReceivedByUser,
+    createdAt:             c.createdAt,
   };
 }
 
@@ -50,7 +58,7 @@ const searchSchema = z.object({
   routeId:       z.string().uuid().optional(),
   dateFrom:      z.string().optional(),
   dateTo:        z.string().optional(),
-  status:        z.enum(['OUTSTANDING', 'RETURNED', 'VOIDED']).optional(),
+  status:        z.enum(['OUTSTANDING', 'RETURNED', 'VOIDED', 'PAID']).optional(),
 });
 
 router.get('/search', async (req: AuthRequest, res, next) => {
@@ -79,9 +87,10 @@ router.get('/search', async (req: AuthRequest, res, next) => {
       if (query.dateTo)   (where.outDatetime as Prisma.DateTimeFilter).lte = new Date(query.dateTo);
     }
 
-    if (query.status === 'OUTSTANDING') { where.inDatetime = null; where.voided = false; }
-    if (query.status === 'RETURNED')    { where.inDatetime = { not: null }; }
+    if (query.status === 'OUTSTANDING') { where.inDatetime = null; where.voided = false; where.paymentReceived = false; }
+    if (query.status === 'RETURNED')    { where.inDatetime = { not: null }; where.voided = false; where.paymentReceived = false; }
     if (query.status === 'VOIDED')      { where.voided = true; }
+    if (query.status === 'PAID')        { where.paymentReceived = true; where.voided = false; }
 
     const rows = await prisma.checkout.findMany({
       where,

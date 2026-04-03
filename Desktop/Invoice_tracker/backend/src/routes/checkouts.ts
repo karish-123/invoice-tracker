@@ -38,12 +38,15 @@ const returnSchema = z.object({
 });
 
 const voidSchema = z.object({
-  voidReason: z.string().min(1),
+  voidReason:      z.string().min(1),
+  returnToPending: z.boolean().optional().default(false),
 });
 
 const editCheckoutSchema = z.object({
-  routeId:     z.string().uuid().optional(),
-  executiveId: z.string().uuid().nullable().optional(),
+  routeId:       z.string().uuid().optional(),
+  executiveId:   z.string().uuid().nullable().optional(),
+  invoiceNumber: z.string().min(1).optional(),
+  outDatetime:   z.string().datetime().optional(),
 });
 
 const paymentSchema = z.object({
@@ -282,6 +285,31 @@ router.get('/outstanding', async (req, res, next) => {
   }
 });
 
+// ── GET /checkouts/paid ──────────────────────────────────────────────────────
+
+router.get('/paid', async (req, res, next) => {
+  try {
+    const { executiveId, routeId } = req.query;
+    const where: Prisma.CheckoutWhereInput = {
+      paymentReceived: true,
+      voided: false,
+    };
+
+    if (typeof executiveId === 'string') where.executiveId = executiveId;
+    if (typeof routeId     === 'string') where.routeId     = routeId;
+
+    const rows = await prisma.checkout.findMany({
+      where,
+      include:  checkoutInclude,
+      orderBy:  { paymentReceivedAt: 'desc' },
+    });
+
+    res.json(rows.map(formatCheckout));
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── POST /checkouts/payment ──────────────────────────────────────────────────
 
 router.post('/payment', async (req: AuthRequest, res, next) => {
@@ -305,7 +333,7 @@ router.post('/payment', async (req: AuthRequest, res, next) => {
 });
 
 // ── PATCH /checkouts/:id ─────────────────────────────────────────────────────
-// ADMIN only — correct a wrong route or executive on any checkout.
+// ADMIN only — correct any field on a checkout.
 
 router.patch('/:id', authenticate, authorize(Role.ADMIN), async (req: AuthRequest, res, next) => {
   try {
@@ -324,11 +352,28 @@ router.patch('/:id', authenticate, authorize(Role.ADMIN), async (req: AuthReques
       if (!exec?.isActive) { res.status(400).json({ error: 'Executive not found or inactive' }); return; }
     }
 
+    if (data.invoiceNumber && data.invoiceNumber !== existing.invoiceNumber) {
+      const conflict = await prisma.checkout.findFirst({
+        where: {
+          invoiceNumber: data.invoiceNumber,
+          inDatetime: null,
+          voided: false,
+          NOT: { id: req.params.id },
+        },
+      });
+      if (conflict) {
+        res.status(400).json({ error: 'Another active checkout already uses that invoice number' });
+        return;
+      }
+    }
+
     const updated = await prisma.checkout.update({
       where: { id: req.params.id },
       data: {
-        ...(data.routeId     !== undefined && { routeId:     data.routeId }),
-        ...(data.executiveId !== undefined && { executiveId: data.executiveId }),
+        ...(data.routeId       !== undefined && { routeId:       data.routeId }),
+        ...(data.executiveId   !== undefined && { executiveId:   data.executiveId }),
+        ...(data.invoiceNumber !== undefined && { invoiceNumber: data.invoiceNumber }),
+        ...(data.outDatetime   !== undefined && { outDatetime:   new Date(data.outDatetime) }),
       },
       include: checkoutInclude,
     });
@@ -343,25 +388,47 @@ router.patch('/:id', authenticate, authorize(Role.ADMIN), async (req: AuthReques
 
 router.post('/:id/void', async (req: AuthRequest, res, next) => {
   try {
-    const { voidReason } = voidSchema.parse(req.body);
+    const { voidReason, returnToPending } = voidSchema.parse(req.body);
 
     const existing = await prisma.checkout.findUnique({ where: { id: req.params.id } });
     if (!existing)           { res.status(404).json({ error: 'Checkout not found' }); return; }
     if (existing.voided)     { res.status(400).json({ error: 'Checkout is already voided' }); return; }
     if (existing.inDatetime) { res.status(400).json({ error: 'Cannot void a returned checkout' }); return; }
 
-    const voided = await prisma.checkout.update({
-      where: { id: req.params.id },
-      data: {
-        voided:         true,
-        voidReason,
-        voidedByUserId: req.user!.userId,
-        voidedAt:       new Date(),
-      },
+    const now    = new Date();
+    const userId = req.user!.userId;
+
+    const voidedCheckout = await prisma.$transaction(async (tx) => {
+      const voided = await tx.checkout.update({
+        where: { id: req.params.id },
+        data: {
+          voided:         true,
+          voidReason,
+          voidedByUserId: userId,
+          voidedAt:       now,
+        },
+      });
+
+      if (returnToPending) {
+        await tx.checkout.create({
+          data: {
+            invoiceNumber: existing.invoiceNumber,
+            routeId:       existing.routeId,
+            outDatetime:   now,
+            outByUserId:   userId,
+          },
+        });
+      }
+
+      return voided;
+    });
+
+    const result = await prisma.checkout.findUnique({
+      where:   { id: voidedCheckout.id },
       include: checkoutInclude,
     });
 
-    res.json(formatCheckout(voided));
+    res.json(formatCheckout(result!));
   } catch (err) {
     next(err);
   }

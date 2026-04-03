@@ -94,11 +94,17 @@ export const getOutstanding = (params?: {
   executiveId?: string; routeId?: string; olderThanDays?: number;
 }) => client.get<Checkout[]>('/checkouts/outstanding', { params }).then(r => r.data);
 
-export const voidCheckout = (id: string, voidReason: string) =>
-  client.post<Checkout>(`/checkouts/${id}/void`, { voidReason }).then(r => r.data);
+export const getPaidInvoices = (params?: {
+  executiveId?: string; routeId?: string;
+}) => client.get<Checkout[]>('/checkouts/paid', { params }).then(r => r.data);
 
-export const updateCheckout = (id: string, data: { routeId?: string; executiveId?: string | null }) =>
-  client.patch<CheckoutHistory>(`/checkouts/${id}`, data).then(r => r.data);
+export const voidCheckout = (id: string, voidReason: string, returnToPending?: boolean) =>
+  client.post<Checkout>(`/checkouts/${id}/void`, { voidReason, returnToPending }).then(r => r.data);
+
+export const updateCheckout = (id: string, data: {
+  routeId?: string; executiveId?: string | null;
+  invoiceNumber?: string; outDatetime?: string;
+}) => client.patch<CheckoutHistory>(`/checkouts/${id}`, data).then(r => r.data);
 
 // ── Invoices (any authenticated) ──────────────────────────────────────────────
 

@@ -19,9 +19,11 @@ export default function Layout() {
       { to: '/pending',     label: 'Invoices for Delivery' },
       { to: '/issue',       label: 'Issued Invoices' },
       { to: '/return',      label: 'Return Invoices' },
+      { to: '/paid',        label: 'Paid Invoices' },
     ] : []),
     // Search — all roles
     { to: '/invoices', label: 'Invoice Search' },
+    { to: '/export',   label: 'Export Data' },
     // Executive self-view
     ...(user?.role === 'EXECUTIVE' ? [
       { to: '/me/outstanding', label: 'My Outstanding' },

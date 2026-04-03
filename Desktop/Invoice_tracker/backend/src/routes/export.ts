@@ -79,23 +79,25 @@ router.get('/history.csv', async (req: AuthRequest, res: Response, next: NextFun
       if (typeof dateTo   === 'string') (where.outDatetime as Prisma.DateTimeFilter).lte = new Date(dateTo);
     }
 
-    if (status === 'OUTSTANDING') { where.inDatetime = null; where.voided = false; }
-    if (status === 'RETURNED')    { where.inDatetime = { not: null }; }
+    if (status === 'OUTSTANDING') { where.inDatetime = null; where.voided = false; where.paymentReceived = false; }
+    if (status === 'RETURNED')    { where.inDatetime = { not: null }; where.voided = false; where.paymentReceived = false; }
     if (status === 'VOIDED')      { where.voided = true; }
+    if (status === 'PAID')        { where.paymentReceived = true; where.voided = false; }
 
     const rows = await prisma.checkout.findMany({
       where,
       include: {
-        executive:   { select: { name: true } },
-        route:       { select: { routeNumber: true } },
-        outByUser:   { select: { name: true } },
-        inByUser:    { select: { name: true } },
+        executive:             { select: { name: true } },
+        route:                 { select: { routeNumber: true } },
+        outByUser:             { select: { name: true } },
+        inByUser:              { select: { name: true } },
+        paymentReceivedByUser: { select: { name: true } },
       },
       orderBy: { outDatetime: 'desc' },
     });
 
     const csv = toCSV(
-      ['Invoice #', 'Executive', 'Route', 'Issued At', 'Issued By', 'Returned At', 'Returned By', 'Status', 'Void Reason'],
+      ['Invoice #', 'Executive', 'Route', 'Issued At', 'Issued By', 'Returned At', 'Returned By', 'Status', 'Paid At', 'Paid By', 'Void Reason'],
       rows.map(r => [
         r.invoiceNumber,
         r.executive?.name ?? '',
@@ -104,7 +106,9 @@ router.get('/history.csv', async (req: AuthRequest, res: Response, next: NextFun
         r.outByUser.name,
         fmtDate(r.inDatetime),
         r.inByUser?.name ?? '',
-        r.voided ? 'VOIDED' : r.inDatetime ? 'RETURNED' : 'OUTSTANDING',
+        r.voided ? 'VOIDED' : r.paymentReceived ? 'PAID' : r.inDatetime ? 'RETURNED' : 'OUTSTANDING',
+        fmtDate(r.paymentReceivedAt),
+        r.paymentReceivedByUser?.name ?? '',
         r.voidReason ?? '',
       ]),
     );

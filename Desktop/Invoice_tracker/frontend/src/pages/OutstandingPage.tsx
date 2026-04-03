@@ -25,10 +25,11 @@ export default function OutstandingPage() {
   const [routeSort, setRouteSort] = useState<'asc' | 'desc' | null>(null);
 
   // Void modal
-  const [voidTarget,  setVoidTarget] = useState<Checkout | null>(null);
-  const [voidReason,  setVoidReason] = useState('');
-  const [voiding,     setVoiding]    = useState(false);
-  const [voidError,   setVoidError]  = useState('');
+  const [voidTarget,       setVoidTarget]       = useState<Checkout | null>(null);
+  const [voidReason,       setVoidReason]       = useState('');
+  const [returnToPending,  setReturnToPending]  = useState(false);
+  const [voiding,          setVoiding]          = useState(false);
+  const [voidError,        setVoidError]        = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -60,9 +61,10 @@ export default function OutstandingPage() {
     setVoiding(true);
     setVoidError('');
     try {
-      await api.voidCheckout(voidTarget.id, voidReason.trim());
+      await api.voidCheckout(voidTarget.id, voidReason.trim(), returnToPending);
       setVoidTarget(null);
       setVoidReason('');
+      setReturnToPending(false);
       fetchData();
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
@@ -171,7 +173,7 @@ export default function OutstandingPage() {
                   <td className="td"><StatusBadge status={row.status} /></td>
                   <td className="td">
                     <button
-                      onClick={() => { setVoidTarget(row); setVoidReason(''); setVoidError(''); }}
+                      onClick={() => { setVoidTarget(row); setVoidReason(''); setVoidError(''); setReturnToPending(false); }}
                       className="text-xs text-red-600 hover:underline"
                     >
                       Void
@@ -202,6 +204,14 @@ export default function OutstandingPage() {
                 placeholder="Explain why this checkout is being voided…"
               />
             </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={returnToPending}
+                onChange={e => setReturnToPending(e.target.checked)}
+              />
+              Return invoice to pending pool for re-delivery
+            </label>
             <div className="flex gap-2 justify-end">
               <button onClick={() => setVoidTarget(null)} className="btn-ghost">Cancel</button>
               <button onClick={handleVoid} disabled={voiding || !voidReason.trim()} className="btn-danger">

@@ -20,6 +20,8 @@ function HistoryRow({
   const [editing,  setEditing]  = useState(false);
   const [routeId,  setRouteId]  = useState(c.route.id);
   const [execId,   setExecId]   = useState(c.executive?.id ?? '');
+  const [invNum,   setInvNum]   = useState(c.invoiceNumber);
+  const [outDt,    setOutDt]    = useState(c.outDatetime ? new Date(c.outDatetime).toISOString().slice(0, 16) : '');
   const [saving,   setSaving]   = useState(false);
   const [saveErr,  setSaveErr]  = useState('');
 
@@ -27,9 +29,12 @@ function HistoryRow({
     setSaving(true);
     setSaveErr('');
     try {
-      const payload: { routeId?: string; executiveId?: string | null } = {};
+      const payload: { routeId?: string; executiveId?: string | null; invoiceNumber?: string; outDatetime?: string } = {};
       if (routeId !== c.route.id) payload.routeId = routeId;
       if (execId  !== (c.executive?.id ?? '')) payload.executiveId = execId || null;
+      if (invNum  !== c.invoiceNumber) payload.invoiceNumber = invNum;
+      const origDt = new Date(c.outDatetime).toISOString().slice(0, 16);
+      if (outDt !== origDt) payload.outDatetime = new Date(outDt).toISOString();
       if (Object.keys(payload).length === 0) { setEditing(false); setSaving(false); return; }
       const updated = await api.updateCheckout(c.id, payload);
       onUpdated(updated);
@@ -44,6 +49,8 @@ function HistoryRow({
   const handleCancel = () => {
     setRouteId(c.route.id);
     setExecId(c.executive?.id ?? '');
+    setInvNum(c.invoiceNumber);
+    setOutDt(c.outDatetime ? new Date(c.outDatetime).toISOString().slice(0, 16) : '');
     setSaveErr('');
     setEditing(false);
   };
@@ -51,8 +58,22 @@ function HistoryRow({
   if (editing) {
     return (
       <tr className="bg-blue-50">
-        <td className="td font-mono text-xs">{c.invoiceNumber}</td>
-        <td className="td whitespace-nowrap">{fmt(c.outDatetime)}</td>
+        <td className="td">
+          <input
+            type="text"
+            value={invNum}
+            onChange={e => setInvNum(e.target.value)}
+            className="input text-xs py-0.5 font-mono w-28"
+          />
+        </td>
+        <td className="td">
+          <input
+            type="datetime-local"
+            value={outDt}
+            onChange={e => setOutDt(e.target.value)}
+            className="input text-xs py-0.5"
+          />
+        </td>
         <td className="td">
           <select
             value={execId}
@@ -290,6 +311,7 @@ export default function InvoiceHistoryPage() {
                 <option value="OUTSTANDING">Outstanding</option>
                 <option value="RETURNED">Returned</option>
                 <option value="VOIDED">Voided</option>
+                <option value="PAID">Paid</option>
               </select>
             </div>
             <div className="flex items-end">
