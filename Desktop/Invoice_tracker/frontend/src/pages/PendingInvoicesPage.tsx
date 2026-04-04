@@ -16,7 +16,24 @@ export default function PendingInvoicesPage() {
   const [filterRoute, setFilterRoute] = useState('');
 
   // Sort
-  const [routeSort, setRouteSort] = useState<'asc' | 'desc' | null>(null);
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const toggleSort = (col: string) => {
+    if (sortCol === col) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else { setSortCol(null); setSortDir('asc'); }
+    } else { setSortCol(col); setSortDir('asc'); }
+  };
+  const sortArrow = (col: string) => sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+  const getSortVal = (row: PendingInvoice, col: string): string => {
+    switch (col) {
+      case 'invoiceNumber': return row.invoiceNumber;
+      case 'route':         return row.route.routeNumber;
+      case 'dateAdded':     return row.outDatetime;
+      case 'addedBy':       return row.outByUser.name;
+      default:              return '';
+    }
+  };
 
   // Void modal
   const [voidTarget, setVoidTarget] = useState<PendingInvoice | null>(null);
@@ -96,15 +113,16 @@ export default function PendingInvoicesPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="th">Invoice #</th>
-                <th
-                  className="th cursor-pointer select-none whitespace-nowrap"
-                  onClick={() => setRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
-                >
-                  Route {routeSort === 'asc' ? '↑' : routeSort === 'desc' ? '↓' : '↕'}
-                </th>
-                <th className="th">Date Added</th>
-                <th className="th">Added By</th>
+                {[
+                  ['invoiceNumber', 'Invoice #'],
+                  ['route', 'Route'],
+                  ['dateAdded', 'Date Added'],
+                  ['addedBy', 'Added By'],
+                ].map(([key, label]) => (
+                  <th key={key} className="th cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort(key)}>
+                    {label}{sortArrow(key)}
+                  </th>
+                ))}
                 <th className="th"></th>
               </tr>
             </thead>
@@ -116,10 +134,11 @@ export default function PendingInvoicesPage() {
                   </td>
                 </tr>
               )}
-              {(routeSort
+              {(sortCol
                 ? [...rows].sort((a, b) => {
-                    const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
-                    return routeSort === 'asc' ? cmp : -cmp;
+                    const va = getSortVal(a, sortCol);
+                    const vb = getSortVal(b, sortCol);
+                    return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
                   })
                 : rows
               ).map(row => (

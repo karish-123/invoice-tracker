@@ -47,6 +47,7 @@ const editCheckoutSchema = z.object({
   executiveId:   z.string().uuid().nullable().optional(),
   invoiceNumber: z.string().min(1).optional(),
   outDatetime:   z.string().datetime().optional(),
+  status:        z.enum(['OUTSTANDING', 'RETURNED', 'PAID', 'VOIDED']).optional(),
 });
 
 const paymentSchema = z.object({
@@ -367,6 +368,54 @@ router.patch('/:id', authenticate, authorize(Role.ADMIN), async (req: AuthReques
       }
     }
 
+    // Build status-related field updates
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const statusFields: Record<string, any> = {};
+    if (data.status) {
+      const userId = req.user!.userId;
+      const now    = new Date();
+      switch (data.status) {
+        case 'OUTSTANDING':
+          statusFields.voided = false;
+          statusFields.voidReason = null;
+          statusFields.voidedByUserId = null;
+          statusFields.voidedAt = null;
+          statusFields.paymentReceived = false;
+          statusFields.paymentReceivedAt = null;
+          statusFields.paymentReceivedByUserId = null;
+          statusFields.inDatetime = null;
+          statusFields.inByUserId = null;
+          break;
+        case 'RETURNED':
+          statusFields.voided = false;
+          statusFields.voidReason = null;
+          statusFields.voidedByUserId = null;
+          statusFields.voidedAt = null;
+          statusFields.paymentReceived = false;
+          statusFields.paymentReceivedAt = null;
+          statusFields.paymentReceivedByUserId = null;
+          statusFields.inDatetime = existing.inDatetime ?? now;
+          statusFields.inByUserId = existing.inByUserId ?? userId;
+          break;
+        case 'PAID':
+          statusFields.voided = false;
+          statusFields.voidReason = null;
+          statusFields.voidedByUserId = null;
+          statusFields.voidedAt = null;
+          statusFields.paymentReceived = true;
+          statusFields.paymentReceivedAt = existing.paymentReceivedAt ?? now;
+          statusFields.paymentReceivedByUserId = existing.paymentReceivedByUserId ?? userId;
+          statusFields.inDatetime = existing.inDatetime ?? now;
+          statusFields.inByUserId = existing.inByUserId ?? userId;
+          break;
+        case 'VOIDED':
+          statusFields.voided = true;
+          statusFields.voidedAt = existing.voidedAt ?? now;
+          statusFields.voidedByUserId = existing.voidedByUserId ?? userId;
+          break;
+      }
+    }
+
     const updated = await prisma.checkout.update({
       where: { id: req.params.id },
       data: {
@@ -374,6 +423,7 @@ router.patch('/:id', authenticate, authorize(Role.ADMIN), async (req: AuthReques
         ...(data.executiveId   !== undefined && { executiveId:   data.executiveId }),
         ...(data.invoiceNumber !== undefined && { invoiceNumber: data.invoiceNumber }),
         ...(data.outDatetime   !== undefined && { outDatetime:   new Date(data.outDatetime) }),
+        ...statusFields,
       },
       include: checkoutInclude,
     });

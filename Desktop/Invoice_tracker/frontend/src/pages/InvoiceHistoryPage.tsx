@@ -17,22 +17,24 @@ function HistoryRow({
   executives: Executive[];
   onUpdated: (updated: CheckoutHistory) => void;
 }) {
-  const [editing,  setEditing]  = useState(false);
-  const [routeId,  setRouteId]  = useState(c.route.id);
-  const [execId,   setExecId]   = useState(c.executive?.id ?? '');
-  const [invNum,   setInvNum]   = useState(c.invoiceNumber);
-  const [outDt,    setOutDt]    = useState(c.outDatetime ? new Date(c.outDatetime).toISOString().slice(0, 16) : '');
-  const [saving,   setSaving]   = useState(false);
-  const [saveErr,  setSaveErr]  = useState('');
+  const [editing,    setEditing]    = useState(false);
+  const [routeId,    setRouteId]    = useState(c.route.id);
+  const [execId,     setExecId]     = useState(c.executive?.id ?? '');
+  const [invNum,     setInvNum]     = useState(c.invoiceNumber);
+  const [outDt,      setOutDt]      = useState(c.outDatetime ? new Date(c.outDatetime).toISOString().slice(0, 16) : '');
+  const [statusVal,  setStatusVal]  = useState(c.status);
+  const [saving,     setSaving]     = useState(false);
+  const [saveErr,    setSaveErr]    = useState('');
 
   const handleSave = async () => {
     setSaving(true);
     setSaveErr('');
     try {
-      const payload: { routeId?: string; executiveId?: string | null; invoiceNumber?: string; outDatetime?: string } = {};
-      if (routeId !== c.route.id) payload.routeId = routeId;
-      if (execId  !== (c.executive?.id ?? '')) payload.executiveId = execId || null;
-      if (invNum  !== c.invoiceNumber) payload.invoiceNumber = invNum;
+      const payload: { routeId?: string; executiveId?: string | null; invoiceNumber?: string; outDatetime?: string; status?: string } = {};
+      if (routeId   !== c.route.id) payload.routeId = routeId;
+      if (execId    !== (c.executive?.id ?? '')) payload.executiveId = execId || null;
+      if (invNum    !== c.invoiceNumber) payload.invoiceNumber = invNum;
+      if (statusVal !== c.status) payload.status = statusVal;
       const origDt = new Date(c.outDatetime).toISOString().slice(0, 16);
       if (outDt !== origDt) payload.outDatetime = new Date(outDt).toISOString();
       if (Object.keys(payload).length === 0) { setEditing(false); setSaving(false); return; }
@@ -51,6 +53,7 @@ function HistoryRow({
     setExecId(c.executive?.id ?? '');
     setInvNum(c.invoiceNumber);
     setOutDt(c.outDatetime ? new Date(c.outDatetime).toISOString().slice(0, 16) : '');
+    setStatusVal(c.status);
     setSaveErr('');
     setEditing(false);
   };
@@ -96,7 +99,18 @@ function HistoryRow({
         <td className="td">{c.outByUser.name}</td>
         <td className="td whitespace-nowrap">{fmt(c.inDatetime)}</td>
         <td className="td">{c.inByUser?.name ?? '—'}</td>
-        <td className="td"><StatusBadge status={c.status} /></td>
+        <td className="td">
+          <select
+            value={statusVal}
+            onChange={e => setStatusVal(e.target.value as CheckoutStatus)}
+            className="input text-xs py-0.5"
+          >
+            <option value="OUTSTANDING">Outstanding</option>
+            <option value="RETURNED">Returned</option>
+            <option value="PAID">Paid</option>
+            <option value="VOIDED">Voided</option>
+          </select>
+        </td>
         <td className="td text-xs" colSpan={2}>
           <div className="flex items-center gap-2 flex-wrap">
             <button onClick={handleSave} disabled={saving} className="btn-primary text-xs py-0.5 px-2">
@@ -223,7 +237,29 @@ export default function InvoiceHistoryPage() {
     return params;
   };
 
-  const [routeSort, setRouteSort] = useState<'asc' | 'desc' | null>(null);
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const toggleSort = (col: string) => {
+    if (sortCol === col) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else { setSortCol(null); setSortDir('asc'); }
+    } else { setSortCol(col); setSortDir('asc'); }
+  };
+  const sortArrow = (col: string) => sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+  const getSortVal = (row: CheckoutHistory, col: string): string => {
+    switch (col) {
+      case 'invoiceNumber': return row.invoiceNumber;
+      case 'issuedAt':      return row.outDatetime;
+      case 'executive':     return row.executive?.name ?? '';
+      case 'route':         return row.route.routeNumber;
+      case 'issuedBy':      return row.outByUser.name;
+      case 'returnedAt':    return row.inDatetime ?? '';
+      case 'returnedBy':    return row.inByUser?.name ?? '';
+      case 'status':        return row.status;
+      case 'voidReason':    return row.voidReason ?? '';
+      default:              return '';
+    }
+  };
 
   const allRows: CheckoutHistory[] = singleData ? singleData.history : (searchRows ?? []);
   const hasResults = singleData !== null || searchRows !== null;
@@ -239,10 +275,11 @@ export default function InvoiceHistoryPage() {
     }
   };
 
-  const displayRows = routeSort
+  const displayRows = sortCol
     ? [...allRows].sort((a, b) => {
-        const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
-        return routeSort === 'asc' ? cmp : -cmp;
+        const va = getSortVal(a, sortCol);
+        const vb = getSortVal(b, sortCol);
+        return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
       })
     : allRows;
 
@@ -356,20 +393,21 @@ export default function InvoiceHistoryPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    <th className="th">Invoice #</th>
-                    <th className="th">Issued At</th>
-                    <th className="th">Executive</th>
-                    <th
-                      className="th cursor-pointer select-none whitespace-nowrap"
-                      onClick={() => setRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
-                    >
-                      Route {routeSort === 'asc' ? '↑' : routeSort === 'desc' ? '↓' : '↕'}
-                    </th>
-                    <th className="th">Issued By</th>
-                    <th className="th">Returned At</th>
-                    <th className="th">Returned By</th>
-                    <th className="th">Status</th>
-                    <th className="th">Void Reason</th>
+                    {[
+                      ['invoiceNumber', 'Invoice #'],
+                      ['issuedAt', 'Issued At'],
+                      ['executive', 'Executive'],
+                      ['route', 'Route'],
+                      ['issuedBy', 'Issued By'],
+                      ['returnedAt', 'Returned At'],
+                      ['returnedBy', 'Returned By'],
+                      ['status', 'Status'],
+                      ['voidReason', 'Void Reason'],
+                    ].map(([key, label]) => (
+                      <th key={key} className="th cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort(key)}>
+                        {label}{sortArrow(key)}
+                      </th>
+                    ))}
                     {isAdmin && <th className="th" />}
                   </tr>
                 </thead>

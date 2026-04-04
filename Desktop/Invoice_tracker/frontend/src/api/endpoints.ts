@@ -104,6 +104,7 @@ export const voidCheckout = (id: string, voidReason: string, returnToPending?: b
 export const updateCheckout = (id: string, data: {
   routeId?: string; executiveId?: string | null;
   invoiceNumber?: string; outDatetime?: string;
+  status?: string;
 }) => client.patch<CheckoutHistory>(`/checkouts/${id}`, data).then(r => r.data);
 
 // ── Invoices (any authenticated) ──────────────────────────────────────────────

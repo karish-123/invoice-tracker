@@ -7,14 +7,57 @@ import Spinner    from '../../components/Spinner';
 const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString() : '—';
 const daysOut = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
 
+function useSort<T>(getValue: (row: T, col: string) => string | number) {
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const toggleSort = (col: string) => {
+    if (sortCol === col) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else { setSortCol(null); setSortDir('asc'); }
+    } else { setSortCol(col); setSortDir('asc'); }
+  };
+  const sortArrow = (col: string) => sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+  const sortRows = (rows: T[]): T[] => {
+    if (!sortCol) return rows;
+    return [...rows].sort((a, b) => {
+      const va = getValue(a, sortCol);
+      const vb = getValue(b, sortCol);
+      const cmp = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  };
+  return { toggleSort, sortArrow, sortRows };
+}
+
 export default function MyOutstandingPage() {
   const [outstanding, setOutstanding] = useState<MeOutstanding[]>([]);
   const [history,     setHistory]     = useState<MeHistoryItem[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [error,       setError]       = useState('');
   const [showHistory, setShowHistory] = useState(false);
-  const [outRouteSort,  setOutRouteSort]  = useState<'asc' | 'desc' | null>(null);
-  const [histRouteSort, setHistRouteSort] = useState<'asc' | 'desc' | null>(null);
+
+  const outSort = useSort<MeOutstanding>((row, col) => {
+    switch (col) {
+      case 'invoiceNumber': return row.invoiceNumber;
+      case 'route':         return row.route.routeNumber;
+      case 'issuedAt':      return row.outDatetime;
+      case 'daysOut':       return daysOut(row.outDatetime);
+      case 'issuedBy':      return row.outByUser.name;
+      case 'status':        return row.status;
+      default:              return '';
+    }
+  });
+
+  const histSort = useSort<MeHistoryItem>((row, col) => {
+    switch (col) {
+      case 'invoiceNumber': return row.invoiceNumber;
+      case 'route':         return row.route.routeNumber;
+      case 'issuedAt':      return row.outDatetime;
+      case 'returnedAt':    return row.inDatetime ?? '';
+      case 'status':        return row.status;
+      default:              return '';
+    }
+  });
 
   useEffect(() => {
     setLoading(true);
@@ -27,7 +70,7 @@ export default function MyOutstandingPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Spinner text="Loading…" />;
+  if (loading) return <Spinner text="Loading..." />;
 
   return (
     <div className="space-y-6">
@@ -46,17 +89,18 @@ export default function MyOutstandingPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              <th className="th">Invoice #</th>
-              <th
-                className="th cursor-pointer select-none whitespace-nowrap"
-                onClick={() => setOutRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
-              >
-                Route {outRouteSort === 'asc' ? '↑' : outRouteSort === 'desc' ? '↓' : '↕'}
-              </th>
-              <th className="th">Issued At</th>
-              <th className="th">Days Out</th>
-              <th className="th">Issued By</th>
-              <th className="th">Status</th>
+              {[
+                ['invoiceNumber', 'Invoice #'],
+                ['route', 'Route'],
+                ['issuedAt', 'Issued At'],
+                ['daysOut', 'Days Out'],
+                ['issuedBy', 'Issued By'],
+                ['status', 'Status'],
+              ].map(([key, label]) => (
+                <th key={key} className="th cursor-pointer select-none whitespace-nowrap" onClick={() => outSort.toggleSort(key)}>
+                  {label}{outSort.sortArrow(key)}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -67,13 +111,7 @@ export default function MyOutstandingPage() {
                 </td>
               </tr>
             )}
-            {(outRouteSort
-              ? [...outstanding].sort((a, b) => {
-                  const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
-                  return outRouteSort === 'asc' ? cmp : -cmp;
-                })
-              : outstanding
-            ).map(row => (
+            {outSort.sortRows(outstanding).map(row => (
               <tr key={row.id} className="hover:bg-gray-50">
                 <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                 <td className="td">{row.route.routeNumber}</td>
@@ -106,26 +144,21 @@ export default function MyOutstandingPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="th">Invoice #</th>
-                <th
-                  className="th cursor-pointer select-none whitespace-nowrap"
-                  onClick={() => setHistRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
-                >
-                  Route {histRouteSort === 'asc' ? '↑' : histRouteSort === 'desc' ? '↓' : '↕'}
-                </th>
-                <th className="th">Issued At</th>
-                <th className="th">Returned At</th>
-                <th className="th">Status</th>
+                {[
+                  ['invoiceNumber', 'Invoice #'],
+                  ['route', 'Route'],
+                  ['issuedAt', 'Issued At'],
+                  ['returnedAt', 'Returned At'],
+                  ['status', 'Status'],
+                ].map(([key, label]) => (
+                  <th key={key} className="th cursor-pointer select-none whitespace-nowrap" onClick={() => histSort.toggleSort(key)}>
+                    {label}{histSort.sortArrow(key)}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y">
-              {(histRouteSort
-                ? [...history].sort((a, b) => {
-                    const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
-                    return histRouteSort === 'asc' ? cmp : -cmp;
-                  })
-                : history
-              ).map(row => (
+              {histSort.sortRows(history).map(row => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                   <td className="td">{row.route.routeNumber}</td>

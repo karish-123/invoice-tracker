@@ -18,7 +18,27 @@ export default function PaidInvoicesPage() {
   const [filterRoute, setFilterRoute]= useState('');
 
   // Sort
-  const [routeSort, setRouteSort] = useState<'asc' | 'desc' | null>(null);
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const toggleSort = (col: string) => {
+    if (sortCol === col) {
+      if (sortDir === 'asc') setSortDir('desc');
+      else { setSortCol(null); setSortDir('asc'); }
+    } else { setSortCol(col); setSortDir('asc'); }
+  };
+  const sortArrow = (col: string) => sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+  const getSortVal = (row: Checkout, col: string): string => {
+    switch (col) {
+      case 'invoiceNumber': return row.invoiceNumber;
+      case 'executive':     return row.executive?.name ?? '';
+      case 'route':         return row.route.routeNumber;
+      case 'issued':        return row.outDatetime;
+      case 'returned':      return row.inDatetime ?? '';
+      case 'paidAt':        return row.paymentReceivedAt ?? '';
+      case 'status':        return row.status;
+      default:              return '';
+    }
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -44,10 +64,11 @@ export default function PaidInvoicesPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const displayRows = routeSort
+  const displayRows = sortCol
     ? [...rows].sort((a, b) => {
-        const cmp = a.route.routeNumber.localeCompare(b.route.routeNumber);
-        return routeSort === 'asc' ? cmp : -cmp;
+        const va = getSortVal(a, sortCol);
+        const vb = getSortVal(b, sortCol);
+        return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
       })
     : rows;
 
@@ -88,18 +109,19 @@ export default function PaidInvoicesPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="th">Invoice #</th>
-                <th className="th">Executive</th>
-                <th
-                  className="th cursor-pointer select-none whitespace-nowrap"
-                  onClick={() => setRouteSort(s => s === 'asc' ? 'desc' : 'asc')}
-                >
-                  Route {routeSort === 'asc' ? '↑' : routeSort === 'desc' ? '↓' : '↕'}
-                </th>
-                <th className="th">Issued</th>
-                <th className="th">Returned</th>
-                <th className="th">Paid At</th>
-                <th className="th">Status</th>
+                {[
+                  ['invoiceNumber', 'Invoice #'],
+                  ['executive', 'Executive'],
+                  ['route', 'Route'],
+                  ['issued', 'Issued'],
+                  ['returned', 'Returned'],
+                  ['paidAt', 'Paid At'],
+                  ['status', 'Status'],
+                ].map(([key, label]) => (
+                  <th key={key} className="th cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort(key)}>
+                    {label}{sortArrow(key)}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y">
