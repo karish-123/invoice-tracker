@@ -73,16 +73,23 @@ router.get('/history.csv', async (req: AuthRequest, res: Response, next: NextFun
 
     if (typeof routeId === 'string') where.routeId = routeId;
 
-    if (typeof dateFrom === 'string' || typeof dateTo === 'string') {
-      where.outDatetime = {};
-      if (typeof dateFrom === 'string') (where.outDatetime as Prisma.DateTimeFilter).gte = new Date(dateFrom);
-      if (typeof dateTo   === 'string') (where.outDatetime as Prisma.DateTimeFilter).lte = new Date(dateTo + 'T23:59:59.999Z');
-    }
+    const dateFilter: Prisma.DateTimeFilter | undefined = (() => {
+      if (typeof dateFrom !== 'string' && typeof dateTo !== 'string') return undefined;
+      const f: Prisma.DateTimeFilter = {};
+      if (typeof dateFrom === 'string') f.gte = new Date(dateFrom);
+      if (typeof dateTo   === 'string') f.lte = new Date(dateTo + 'T23:59:59.999Z');
+      return f;
+    })();
 
     if (status === 'OUTSTANDING') { where.inDatetime = null; where.voided = false; where.paymentReceived = false; }
-    if (status === 'RETURNED')    { where.inDatetime = { not: null }; where.voided = false; where.paymentReceived = false; }
+    if (status === 'RETURNED')    { where.inDatetime = dateFilter ? { not: null, ...dateFilter } : { not: null }; where.voided = false; where.paymentReceived = false; }
     if (status === 'VOIDED')      { where.voided = true; }
     if (status === 'PAID')        { where.paymentReceived = true; where.voided = false; }
+
+    if (dateFilter) {
+      if (status === 'PAID')         where.paymentReceivedAt = dateFilter;
+      else if (status !== 'RETURNED') where.outDatetime       = dateFilter;
+    }
 
     const rows = await prisma.checkout.findMany({
       where,
@@ -260,16 +267,23 @@ router.get('/dashboard', async (req: AuthRequest, res: Response, next: NextFunct
 
     if (typeof routeId === 'string') where.routeId = routeId;
 
-    if (typeof dateFrom === 'string' || typeof dateTo === 'string') {
-      where.outDatetime = {};
-      if (typeof dateFrom === 'string') (where.outDatetime as Prisma.DateTimeFilter).gte = new Date(dateFrom);
-      if (typeof dateTo   === 'string') (where.outDatetime as Prisma.DateTimeFilter).lte = new Date(dateTo + 'T23:59:59.999Z');
-    }
+    const dateFilter: Prisma.DateTimeFilter | undefined = (() => {
+      if (typeof dateFrom !== 'string' && typeof dateTo !== 'string') return undefined;
+      const f: Prisma.DateTimeFilter = {};
+      if (typeof dateFrom === 'string') f.gte = new Date(dateFrom);
+      if (typeof dateTo   === 'string') f.lte = new Date(dateTo + 'T23:59:59.999Z');
+      return f;
+    })();
 
     if (status === 'OUTSTANDING') { where.inDatetime = null; where.voided = false; where.paymentReceived = false; }
-    if (status === 'RETURNED')    { where.inDatetime = { not: null }; where.voided = false; where.paymentReceived = false; }
+    if (status === 'RETURNED')    { where.inDatetime = dateFilter ? { not: null, ...dateFilter } : { not: null }; where.voided = false; where.paymentReceived = false; }
     if (status === 'VOIDED')      { where.voided = true; }
     if (status === 'PAID')        { where.paymentReceived = true; where.voided = false; }
+
+    if (dateFilter) {
+      if (status === 'PAID')          where.paymentReceivedAt = dateFilter;
+      else if (status !== 'RETURNED') where.outDatetime       = dateFilter;
+    }
 
     const rows = await prisma.checkout.findMany({
       where,

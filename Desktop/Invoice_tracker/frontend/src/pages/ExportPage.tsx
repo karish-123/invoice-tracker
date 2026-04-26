@@ -137,11 +137,17 @@ export default function ExportPage() {
       <div className="card p-4 space-y-3 no-print">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div>
-            <label className="label">From Date</label>
+            <label className="label">
+              From Date
+              {status === 'PAID' ? ' (Paid Date)' : status === 'RETURNED' ? ' (Return Date)' : ' (Issued Date)'}
+            </label>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="input" />
           </div>
           <div>
-            <label className="label">To Date</label>
+            <label className="label">
+              To Date
+              {status === 'PAID' ? ' (Paid Date)' : status === 'RETURNED' ? ' (Return Date)' : ' (Issued Date)'}
+            </label>
             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="input" />
           </div>
           {!isExecutive && (
