@@ -3,31 +3,12 @@ import * as api from '../../api/endpoints';
 import type { MeOutstanding, MeHistoryItem } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import Spinner    from '../../components/Spinner';
+import CommentSection from '../../components/CommentSection';
+import PrintButton from '../../components/PrintButton';
+import { useSort } from '../../hooks/useSort';
 
 const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString() : '—';
 const daysOut = (iso: string) => Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-
-function useSort<T>(getValue: (row: T, col: string) => string | number) {
-  const [sortCol, setSortCol] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const toggleSort = (col: string) => {
-    if (sortCol === col) {
-      if (sortDir === 'asc') setSortDir('desc');
-      else { setSortCol(null); setSortDir('asc'); }
-    } else { setSortCol(col); setSortDir('asc'); }
-  };
-  const sortArrow = (col: string) => sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
-  const sortRows = (rows: T[]): T[] => {
-    if (!sortCol) return rows;
-    return [...rows].sort((a, b) => {
-      const va = getValue(a, sortCol);
-      const vb = getValue(b, sortCol);
-      const cmp = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  };
-  return { toggleSort, sortArrow, sortRows };
-}
 
 export default function MyOutstandingPage() {
   const [outstanding, setOutstanding] = useState<MeOutstanding[]>([]);
@@ -40,6 +21,7 @@ export default function MyOutstandingPage() {
     switch (col) {
       case 'invoiceNumber': return row.invoiceNumber;
       case 'route':         return row.route.routeNumber;
+      case 'shop':          return row.shop?.name ?? '';
       case 'issuedAt':      return row.outDatetime;
       case 'daysOut':       return daysOut(row.outDatetime);
       case 'issuedBy':      return row.outByUser.name;
@@ -52,6 +34,7 @@ export default function MyOutstandingPage() {
     switch (col) {
       case 'invoiceNumber': return row.invoiceNumber;
       case 'route':         return row.route.routeNumber;
+      case 'shop':          return row.shop?.name ?? '';
       case 'issuedAt':      return row.outDatetime;
       case 'returnedAt':    return row.inDatetime ?? '';
       case 'status':        return row.status;
@@ -76,7 +59,10 @@ export default function MyOutstandingPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">My Invoices</h1>
-        <span className="text-sm text-gray-500">{outstanding.length} outstanding</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{outstanding.length} outstanding</span>
+          <PrintButton title="My Invoices" />
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -92,6 +78,7 @@ export default function MyOutstandingPage() {
               {[
                 ['invoiceNumber', 'Invoice #'],
                 ['route', 'Route'],
+                ['shop', 'Shop'],
                 ['issuedAt', 'Issued At'],
                 ['daysOut', 'Days Out'],
                 ['issuedBy', 'Issued By'],
@@ -101,12 +88,13 @@ export default function MyOutstandingPage() {
                   {label}{outSort.sortArrow(key)}
                 </th>
               ))}
+              <th className="th">Comments</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {outstanding.length === 0 && (
               <tr>
-                <td colSpan={6} className="td text-center text-gray-400 py-8">
+                <td colSpan={7} className="td text-center text-gray-400 py-8">
                   No outstanding invoices — all clear!
                 </td>
               </tr>
@@ -115,6 +103,7 @@ export default function MyOutstandingPage() {
               <tr key={row.id} className="hover:bg-gray-50">
                 <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                 <td className="td">{row.route.routeNumber}</td>
+                <td className="td">{row.shop?.name ?? '—'}</td>
                 <td className="td whitespace-nowrap">{fmt(row.outDatetime)}</td>
                 <td className="td">
                   <span className={`font-medium ${daysOut(row.outDatetime) >= 7 ? 'text-red-600' : ''}`}>
@@ -123,6 +112,7 @@ export default function MyOutstandingPage() {
                 </td>
                 <td className="td">{row.outByUser.name}</td>
                 <td className="td"><StatusBadge status={row.status} /></td>
+                <td className="td"><CommentSection entityType="CHECKOUT" entityId={row.id} compact showPreview /></td>
               </tr>
             ))}
           </tbody>
@@ -147,6 +137,7 @@ export default function MyOutstandingPage() {
                 {[
                   ['invoiceNumber', 'Invoice #'],
                   ['route', 'Route'],
+                  ['shop', 'Shop'],
                   ['issuedAt', 'Issued At'],
                   ['returnedAt', 'Returned At'],
                   ['status', 'Status'],
@@ -162,6 +153,7 @@ export default function MyOutstandingPage() {
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                   <td className="td">{row.route.routeNumber}</td>
+                  <td className="td">{row.shop?.name ?? '—'}</td>
                   <td className="td whitespace-nowrap">{fmt(row.outDatetime)}</td>
                   <td className="td whitespace-nowrap">{fmt(row.inDatetime)}</td>
                   <td className="td"><StatusBadge status={row.status} /></td>

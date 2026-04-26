@@ -1,0 +1,131 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "Infobells" [ref=e7]
+        - paragraph [ref=e8]: Infobells Invoice Tracker
+      - paragraph [ref=e9]: System Administrator
+      - generic [ref=e10]: ADMIN
+    - navigation [ref=e11]:
+      - link "Outstanding" [ref=e13] [cursor=pointer]:
+        - /url: /outstanding
+      - link "Master Invoices" [ref=e15] [cursor=pointer]:
+        - /url: /master
+      - link "Old Invoices" [ref=e17] [cursor=pointer]:
+        - /url: /old-invoices
+      - link "Invoices for Delivery" [ref=e19] [cursor=pointer]:
+        - /url: /pending
+      - link "Issued Invoices" [ref=e21] [cursor=pointer]:
+        - /url: /issue
+      - link "Return Invoices" [ref=e23] [cursor=pointer]:
+        - /url: /return
+      - link "Paid Invoices" [ref=e25] [cursor=pointer]:
+        - /url: /paid
+      - link "Invoice Search" [ref=e27] [cursor=pointer]:
+        - /url: /invoices
+      - link "Export Data" [ref=e29] [cursor=pointer]:
+        - /url: /export
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Admin
+        - link "Field Reports" [ref=e32] [cursor=pointer]:
+          - /url: /field-reports/approvals
+      - link "Approvals" [ref=e34] [cursor=pointer]:
+        - /url: /approvals
+      - link "Users" [ref=e36] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Executives" [ref=e38] [cursor=pointer]:
+        - /url: /admin/executives
+      - link "Routes" [ref=e40] [cursor=pointer]:
+        - /url: /admin/routes
+      - link "Shops" [ref=e42] [cursor=pointer]:
+        - /url: /admin/shops
+      - link "Reports" [ref=e44] [cursor=pointer]:
+        - /url: /reports
+    - button "Sign out" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - generic [ref=e48]:
+      - generic [ref=e49]:
+        - heading "Users" [level=1] [ref=e50]
+        - button "+ Add User" [active] [ref=e51] [cursor=pointer]
+      - table [ref=e53]:
+        - rowgroup [ref=e54]:
+          - row "Name Username Role Status Created" [ref=e55]:
+            - columnheader "Name" [ref=e56]
+            - columnheader "Username" [ref=e57]
+            - columnheader "Role" [ref=e58]
+            - columnheader "Status" [ref=e59]
+            - columnheader "Created" [ref=e60]
+            - columnheader [ref=e61]
+        - rowgroup [ref=e62]:
+          - row "Karishnii karishnii OFFICE_STAFF Active 22/02/2026 Edit Delete" [ref=e63]:
+            - cell "Karishnii" [ref=e64]
+            - cell "karishnii" [ref=e65]
+            - cell "OFFICE_STAFF" [ref=e66]
+            - cell "Active" [ref=e67]
+            - cell "22/02/2026" [ref=e68]
+            - cell "Edit Delete" [ref=e69]:
+              - generic [ref=e70]:
+                - button "Edit" [ref=e71] [cursor=pointer]
+                - button "Delete" [ref=e72] [cursor=pointer]
+          - row "John Smith john.smith EXECUTIVE Active 21/02/2026 Edit Delete" [ref=e73]:
+            - cell "John Smith" [ref=e74]
+            - cell "john.smith" [ref=e75]
+            - cell "EXECUTIVE" [ref=e76]
+            - cell "Active" [ref=e77]
+            - cell "21/02/2026" [ref=e78]
+            - cell "Edit Delete" [ref=e79]:
+              - generic [ref=e80]:
+                - button "Edit" [ref=e81] [cursor=pointer]
+                - button "Delete" [ref=e82] [cursor=pointer]
+          - row "Office Staff Member office.staff OFFICE_STAFF Active 21/02/2026 Edit Delete" [ref=e83]:
+            - cell "Office Staff Member" [ref=e84]
+            - cell "office.staff" [ref=e85]
+            - cell "OFFICE_STAFF" [ref=e86]
+            - cell "Active" [ref=e87]
+            - cell "21/02/2026" [ref=e88]
+            - cell "Edit Delete" [ref=e89]:
+              - generic [ref=e90]:
+                - button "Edit" [ref=e91] [cursor=pointer]
+                - button "Delete" [ref=e92] [cursor=pointer]
+          - row "System Administrator admin ADMIN Active 21/02/2026 Edit Delete" [ref=e93]:
+            - cell "System Administrator" [ref=e94]
+            - cell "admin" [ref=e95]
+            - cell "ADMIN" [ref=e96]
+            - cell "Active" [ref=e97]
+            - cell "21/02/2026" [ref=e98]
+            - cell "Edit Delete" [ref=e99]:
+              - generic [ref=e100]:
+                - button "Edit" [ref=e101] [cursor=pointer]
+                - button "Delete" [ref=e102] [cursor=pointer]
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - heading "Add User" [level=2] [ref=e106]
+          - button "Close" [ref=e107] [cursor=pointer]: ×
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - generic [ref=e112]: Full Name *
+              - textbox [ref=e113]
+            - generic [ref=e114]:
+              - generic [ref=e115]: Username *
+              - textbox [ref=e116]
+          - generic [ref=e117]:
+            - generic [ref=e118]: Password *
+            - textbox [ref=e119]
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]: Role *
+              - combobox [ref=e123]:
+                - option "ADMIN"
+                - option "OFFICE_STAFF" [selected]
+                - option "EXECUTIVE"
+            - generic [ref=e124]:
+              - generic [ref=e125]: Executive (N/A)
+              - combobox [disabled] [ref=e126]:
+                - option "— none —" [selected]
+                - option "Jane Doe"
+                - option "John Smith"
+                - option "nithin"
+          - generic [ref=e127]:
+            - button "Cancel" [ref=e128] [cursor=pointer]
+            - button "Save" [ref=e129] [cursor=pointer]

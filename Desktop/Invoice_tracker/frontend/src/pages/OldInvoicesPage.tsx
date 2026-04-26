@@ -1,14 +1,14 @@
 import { useState, useEffect, FormEvent } from 'react';
 import * as api from '../api/endpoints';
 import type { AppRoute, IssueResult } from '../types';
-import InvoiceChipInput from '../components/InvoiceChipInput';
+import InvoiceWithRemarksInput, { InvoiceEntry } from '../components/InvoiceWithRemarksInput';
 import BatchResultTable  from '../components/BatchResultTable';
 import Spinner           from '../components/Spinner';
 
 export default function OldInvoicesPage() {
   const [routes,   setRoutes]   = useState<AppRoute[]>([]);
   const [routeId,  setRouteId]  = useState('');
-  const [invoices, setInvoices] = useState<string[]>([]);
+  const [entries,  setEntries]  = useState<InvoiceEntry[]>([]);
   const [results,  setResults]  = useState<IssueResult[] | null>(null);
   const [error,    setError]    = useState('');
   const [loading,  setLoading]  = useState(false);
@@ -24,13 +24,19 @@ export default function OldInvoicesPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!invoices.length) { setError('Add at least one invoice number.'); return; }
+    if (!entries.length) { setError('Add at least one invoice number.'); return; }
 
     setLoading(true);
     try {
-      const { results: res } = await api.addOldInvoices({ routeId, invoiceNumbers: invoices });
+      const { results: res } = await api.addOldInvoices({
+        routeId,
+        invoices: entries.map(e => ({
+          invoiceNumber: e.invoiceNumber,
+          ...(e.invoiceAmount ? { invoiceAmount: parseFloat(e.invoiceAmount) } : {}),
+        })),
+      });
       setResults(res);
-      setInvoices([]);
+      setEntries([]);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
       setError(msg ?? 'Request failed.');
@@ -64,7 +70,7 @@ export default function OldInvoicesPage() {
           </select>
         </div>
 
-        <InvoiceChipInput invoices={invoices} onChange={setInvoices} label="Invoice Numbers" />
+        <InvoiceWithRemarksInput entries={entries} onChange={setEntries} label="Invoice Numbers" />
 
         <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? 'Submitting...' : 'Submit'}

@@ -11,33 +11,42 @@ export default function Layout() {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const allItems: NavItem[] = [
+    // Field Reports pinned to top for staff and admin
+    ...(user?.role === 'OFFICE_STAFF' || user?.role === 'ADMIN' ? [
+      { to: '/field-reports/approvals', label: 'Field Reports' },
+    ] : []),
     // Operations — ADMIN or OFFICE_STAFF
     ...(user?.role !== 'EXECUTIVE' ? [
-      { to: '/outstanding', label: 'Outstanding' },
-      { to: '/master',      label: 'Master Invoices' },
+      { to: '/outstanding',  label: 'Outstanding' },
+      { to: '/master',       label: 'Master Invoices' },
       { to: '/old-invoices', label: 'Old Invoices' },
-      { to: '/pending',     label: 'Invoices for Delivery' },
-      { to: '/issue',       label: 'Issued Invoices' },
-      { to: '/return',      label: 'Return Invoices' },
-      { to: '/paid',        label: 'Paid Invoices' },
+      { to: '/pending',      label: 'Invoices for Delivery' },
+      { to: '/issue',        label: 'Issued Invoices' },
+      { to: '/return',       label: 'Return Invoices' },
+      { to: '/paid',         label: 'Paid Invoices' },
     ] : []),
     // Search — all roles
     { to: '/invoices', label: 'Invoice Search' },
     { to: '/export',   label: 'Export Data' },
     // Executive self-view
     ...(user?.role === 'EXECUTIVE' ? [
-      { to: '/me/outstanding', label: 'My Outstanding' },
+      { to: '/me/field-report', label: 'Field Report' },
+      { to: '/me/outstanding',  label: 'My Outstanding' },
     ] : []),
-    // Office staff: approval requests
+    // Office staff extras
     ...(user?.role === 'OFFICE_STAFF' ? [
       { to: '/my-approvals', label: 'My Requests' },
+      { to: '/admin/shops',  label: 'Shops' },
+      { to: '/reports',      label: 'Reports' },
     ] : []),
     // Admin management
     ...(user?.role === 'ADMIN' ? [
-      { to: '/approvals',         label: 'Approvals',  section: 'Admin' },
-      { to: '/admin/users',       label: 'Users',      section: 'Admin' },
-      { to: '/admin/executives',  label: 'Executives', section: 'Admin' },
-      { to: '/admin/routes',      label: 'Routes',     section: 'Admin' },
+      { to: '/approvals',        label: 'Approvals',  section: 'Admin' },
+      { to: '/admin/users',      label: 'Users',      section: 'Admin' },
+      { to: '/admin/executives', label: 'Executives', section: 'Admin' },
+      { to: '/admin/routes',     label: 'Routes',     section: 'Admin' },
+      { to: '/admin/shops',      label: 'Shops',      section: 'Admin' },
+      { to: '/reports',          label: 'Reports',    section: 'Admin' },
     ] : []),
   ];
 

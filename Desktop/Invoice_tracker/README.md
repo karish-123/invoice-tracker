@@ -1,5 +1,5 @@
 # Invoice Tracker
-
+\
 A full-stack web application for tracking invoice checkouts — issue invoices to field executives, record returns, manage backdate approvals, and export reports. Built for small teams (5–20 users) with role-based access control.
 
 **Live:** <https://infobells-invoice-tracker.vercel.app>
@@ -15,19 +15,19 @@ A full-stack web application for tracking invoice checkouts — issue invoices t
                           │ HTTPS
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                  Vercel (Frontend)                               │
+│                  Vercel (Frontend)                              │
 │                                                                 │
 │   React 18 + TypeScript + Vite + Tailwind CSS                   │
 │   React Router (client-side routing)                            │
 │   Axios (JWT Bearer token on every request)                     │
 └─────────────────────────┬───────────────────────────────────────┘
-                          │ HTTPS REST API
+                          │ HTTPS REST API                                    
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │               Railway (Backend — Docker Container)              │
 │                                                                 │
 │   Node.js + Express + TypeScript                                │
-│   Prisma ORM · JWT Auth · bcryptjs · zod validation            │
+│   Prisma ORM · JWT Auth · bcryptjs · zod validation             │
 │                                                                 │
 │   Routes:                                                       │
 │   POST /auth/login          GET  /checkouts/outstanding         │

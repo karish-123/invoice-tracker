@@ -1,0 +1,416 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "Infobells" [ref=e7]
+        - paragraph [ref=e8]: Infobells Invoice Tracker
+      - paragraph [ref=e9]: System Administrator
+      - generic [ref=e10]: ADMIN
+    - navigation [ref=e11]:
+      - link "Outstanding" [ref=e13] [cursor=pointer]:
+        - /url: /outstanding
+      - link "Master Invoices" [ref=e15] [cursor=pointer]:
+        - /url: /master
+      - link "Old Invoices" [ref=e17] [cursor=pointer]:
+        - /url: /old-invoices
+      - link "Invoices for Delivery" [ref=e19] [cursor=pointer]:
+        - /url: /pending
+      - link "Issued Invoices" [ref=e21] [cursor=pointer]:
+        - /url: /issue
+      - link "Return Invoices" [ref=e23] [cursor=pointer]:
+        - /url: /return
+      - link "Paid Invoices" [ref=e25] [cursor=pointer]:
+        - /url: /paid
+      - link "Invoice Search" [ref=e27] [cursor=pointer]:
+        - /url: /invoices
+      - link "Export Data" [ref=e29] [cursor=pointer]:
+        - /url: /export
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Admin
+        - link "Field Reports" [ref=e32] [cursor=pointer]:
+          - /url: /field-reports/approvals
+      - link "Approvals" [ref=e34] [cursor=pointer]:
+        - /url: /approvals
+      - link "Users" [ref=e36] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Executives" [ref=e38] [cursor=pointer]:
+        - /url: /admin/executives
+      - link "Routes" [ref=e40] [cursor=pointer]:
+        - /url: /admin/routes
+      - link "Shops" [ref=e42] [cursor=pointer]:
+        - /url: /admin/shops
+      - link "Reports" [ref=e44] [cursor=pointer]:
+        - /url: /reports
+    - button "Sign out" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - generic [ref=e48]:
+      - heading "Invoice Search" [level=1] [ref=e49]
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]: Invoice Number
+          - textbox "e.g. INV-0042" [ref=e54]
+        - button "Search" [ref=e55] [cursor=pointer]
+        - button "Filters" [ref=e56] [cursor=pointer]
+      - generic [ref=e57]:
+        - generic [ref=e58]:
+          - generic [ref=e60]: 23 records
+          - button "Export CSV" [ref=e61] [cursor=pointer]
+        - table [ref=e63]:
+          - rowgroup [ref=e64]:
+            - 'row "Invoice # ↕ Issued At ↕ Executive ↕ Route ↕ Issued By ↕ Returned At ↕ Returned By ↕ Status ↕ Void Reason ↕" [ref=e65]':
+              - 'columnheader "Invoice # ↕" [ref=e66] [cursor=pointer]'
+              - columnheader "Issued At ↕" [ref=e67] [cursor=pointer]
+              - columnheader "Executive ↕" [ref=e68] [cursor=pointer]
+              - columnheader "Route ↕" [ref=e69] [cursor=pointer]
+              - columnheader "Issued By ↕" [ref=e70] [cursor=pointer]
+              - columnheader "Returned At ↕" [ref=e71] [cursor=pointer]
+              - columnheader "Returned By ↕" [ref=e72] [cursor=pointer]
+              - columnheader "Status ↕" [ref=e73] [cursor=pointer]
+              - columnheader "Void Reason ↕" [ref=e74] [cursor=pointer]
+              - columnheader [ref=e75]
+          - rowgroup [ref=e76]:
+            - row "TEST-001 22/02/2026, 15:28:30 Jane Doe BLR-01 System Administrator 22/02/2026, 15:28:30 System Administrator RETURNED — Edit Comments" [ref=e77]:
+              - cell "TEST-001" [ref=e78]
+              - cell "22/02/2026, 15:28:30" [ref=e79]
+              - cell "Jane Doe" [ref=e80]
+              - cell "BLR-01" [ref=e81]
+              - cell "System Administrator" [ref=e82]
+              - cell "22/02/2026, 15:28:30" [ref=e83]
+              - cell "System Administrator" [ref=e84]
+              - cell "RETURNED" [ref=e85]:
+                - generic [ref=e86]: RETURNED
+              - cell "—" [ref=e87]
+              - cell "Edit Comments" [ref=e88]:
+                - generic [ref=e89]:
+                  - button "Edit" [ref=e90] [cursor=pointer]
+                  - button "Comments" [ref=e91] [cursor=pointer]
+            - row "TEST-003 22/02/2026, 15:28:30 Jane Doe BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e92]:
+              - cell "TEST-003" [ref=e93]
+              - cell "22/02/2026, 15:28:30" [ref=e94]
+              - cell "Jane Doe" [ref=e95]
+              - cell "BLR-01" [ref=e96]
+              - cell "System Administrator" [ref=e97]
+              - cell "—" [ref=e98]
+              - cell "—" [ref=e99]
+              - cell "OUTSTANDING" [ref=e100]:
+                - generic [ref=e101]: OUTSTANDING
+              - cell "—" [ref=e102]
+              - cell "Edit Comments" [ref=e103]:
+                - generic [ref=e104]:
+                  - button "Edit" [ref=e105] [cursor=pointer]
+                  - button "Comments" [ref=e106] [cursor=pointer]
+            - row "TEST-002 22/02/2026, 15:28:30 Jane Doe BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e107]:
+              - cell "TEST-002" [ref=e108]
+              - cell "22/02/2026, 15:28:30" [ref=e109]
+              - cell "Jane Doe" [ref=e110]
+              - cell "BLR-01" [ref=e111]
+              - cell "System Administrator" [ref=e112]
+              - cell "—" [ref=e113]
+              - cell "—" [ref=e114]
+              - cell "OUTSTANDING" [ref=e115]:
+                - generic [ref=e116]: OUTSTANDING
+              - cell "—" [ref=e117]
+              - cell "Edit Comments" [ref=e118]:
+                - generic [ref=e119]:
+                  - button "Edit" [ref=e120] [cursor=pointer]
+                  - button "Comments" [ref=e121] [cursor=pointer]
+            - row "2345 22/02/2026, 13:14:00 nithin RT-002 Office Staff Member — — OUTSTANDING — Edit Comments" [ref=e122]:
+              - cell "2345" [ref=e123]
+              - cell "22/02/2026, 13:14:00" [ref=e124]
+              - cell "nithin" [ref=e125]
+              - cell "RT-002" [ref=e126]
+              - cell "Office Staff Member" [ref=e127]
+              - cell "—" [ref=e128]
+              - cell "—" [ref=e129]
+              - cell "OUTSTANDING" [ref=e130]:
+                - generic [ref=e131]: OUTSTANDING
+              - cell "—" [ref=e132]
+              - cell "Edit Comments" [ref=e133]:
+                - generic [ref=e134]:
+                  - button "Edit" [ref=e135] [cursor=pointer]
+                  - button "Comments" [ref=e136] [cursor=pointer]
+            - row "1234 22/02/2026, 12:58:00 Jane Doe RT-001 System Administrator — — OUTSTANDING — Edit Comments" [ref=e137]:
+              - cell "1234" [ref=e138]
+              - cell "22/02/2026, 12:58:00" [ref=e139]
+              - cell "Jane Doe" [ref=e140]
+              - cell "RT-001" [ref=e141]
+              - cell "System Administrator" [ref=e142]
+              - cell "—" [ref=e143]
+              - cell "—" [ref=e144]
+              - cell "OUTSTANDING" [ref=e145]:
+                - generic [ref=e146]: OUTSTANDING
+              - cell "—" [ref=e147]
+              - cell "Edit Comments" [ref=e148]:
+                - generic [ref=e149]:
+                  - button "Edit" [ref=e150] [cursor=pointer]
+                  - button "Comments" [ref=e151] [cursor=pointer]
+            - row "INV-NEW2 22/02/2026, 12:09:54 John Smith RT-001 Office Staff Member — — OUTSTANDING — Edit Comments" [ref=e152]:
+              - cell "INV-NEW2" [ref=e153]
+              - cell "22/02/2026, 12:09:54" [ref=e154]
+              - cell "John Smith" [ref=e155]
+              - cell "RT-001" [ref=e156]
+              - cell "Office Staff Member" [ref=e157]
+              - cell "—" [ref=e158]
+              - cell "—" [ref=e159]
+              - cell "OUTSTANDING" [ref=e160]:
+                - generic [ref=e161]: OUTSTANDING
+              - cell "—" [ref=e162]
+              - cell "Edit Comments" [ref=e163]:
+                - generic [ref=e164]:
+                  - button "Edit" [ref=e165] [cursor=pointer]
+                  - button "Comments" [ref=e166] [cursor=pointer]
+            - row "INV-A 22/02/2026, 12:08:55 John Smith RT-001 Office Staff Member — — OUTSTANDING — Edit Comments" [ref=e167]:
+              - cell "INV-A" [ref=e168]
+              - cell "22/02/2026, 12:08:55" [ref=e169]
+              - cell "John Smith" [ref=e170]
+              - cell "RT-001" [ref=e171]
+              - cell "Office Staff Member" [ref=e172]
+              - cell "—" [ref=e173]
+              - cell "—" [ref=e174]
+              - cell "OUTSTANDING" [ref=e175]:
+                - generic [ref=e176]: OUTSTANDING
+              - cell "—" [ref=e177]
+              - cell "Edit Comments" [ref=e178]:
+                - generic [ref=e179]:
+                  - button "Edit" [ref=e180] [cursor=pointer]
+                  - button "Comments" [ref=e181] [cursor=pointer]
+            - row "INV-NEW 22/02/2026, 12:08:55 John Smith RT-001 Office Staff Member 01/06/2024, 17:30:00 Office Staff Member RETURNED — Edit Comments" [ref=e182]:
+              - cell "INV-NEW" [ref=e183]
+              - cell "22/02/2026, 12:08:55" [ref=e184]
+              - cell "John Smith" [ref=e185]
+              - cell "RT-001" [ref=e186]
+              - cell "Office Staff Member" [ref=e187]
+              - cell "01/06/2024, 17:30:00" [ref=e188]
+              - cell "Office Staff Member" [ref=e189]
+              - cell "RETURNED" [ref=e190]:
+                - generic [ref=e191]: RETURNED
+              - cell "—" [ref=e192]
+              - cell "Edit Comments" [ref=e193]:
+                - generic [ref=e194]:
+                  - button "Edit" [ref=e195] [cursor=pointer]
+                  - button "Comments" [ref=e196] [cursor=pointer]
+            - row "INV-B 22/02/2026, 12:08:55 John Smith RT-001 Office Staff Member 22/02/2026, 12:08:55 Office Staff Member RETURNED — Edit Comments" [ref=e197]:
+              - cell "INV-B" [ref=e198]
+              - cell "22/02/2026, 12:08:55" [ref=e199]
+              - cell "John Smith" [ref=e200]
+              - cell "RT-001" [ref=e201]
+              - cell "Office Staff Member" [ref=e202]
+              - cell "22/02/2026, 12:08:55" [ref=e203]
+              - cell "Office Staff Member" [ref=e204]
+              - cell "RETURNED" [ref=e205]:
+                - generic [ref=e206]: RETURNED
+              - cell "—" [ref=e207]
+              - cell "Edit Comments" [ref=e208]:
+                - generic [ref=e209]:
+                  - button "Edit" [ref=e210] [cursor=pointer]
+                  - button "Comments" [ref=e211] [cursor=pointer]
+            - row "INV-C 22/02/2026, 12:08:55 John Smith RT-001 Office Staff Member — — VOIDED Testing void endpoint Edit Comments" [ref=e212]:
+              - cell "INV-C" [ref=e213]
+              - cell "22/02/2026, 12:08:55" [ref=e214]
+              - cell "John Smith" [ref=e215]
+              - cell "RT-001" [ref=e216]
+              - cell "Office Staff Member" [ref=e217]
+              - cell "—" [ref=e218]
+              - cell "—" [ref=e219]
+              - cell "VOIDED" [ref=e220]:
+                - generic [ref=e221]: VOIDED
+              - cell "Testing void endpoint" [ref=e222]
+              - cell "Edit Comments" [ref=e223]:
+                - generic [ref=e224]:
+                  - button "Edit" [ref=e225] [cursor=pointer]
+                  - button "Comments" [ref=e226] [cursor=pointer]
+            - row "INV-A 22/02/2026, 12:08:55 John Smith RT-001 Office Staff Member 22/02/2026, 12:08:55 Office Staff Member RETURNED — Edit Comments" [ref=e227]:
+              - cell "INV-A" [ref=e228]
+              - cell "22/02/2026, 12:08:55" [ref=e229]
+              - cell "John Smith" [ref=e230]
+              - cell "RT-001" [ref=e231]
+              - cell "Office Staff Member" [ref=e232]
+              - cell "22/02/2026, 12:08:55" [ref=e233]
+              - cell "Office Staff Member" [ref=e234]
+              - cell "RETURNED" [ref=e235]:
+                - generic [ref=e236]: RETURNED
+              - cell "—" [ref=e237]
+              - cell "Edit Comments" [ref=e238]:
+                - generic [ref=e239]:
+                  - button "Edit" [ref=e240] [cursor=pointer]
+                  - button "Comments" [ref=e241] [cursor=pointer]
+            - row "1122 20/02/2026, 15:31:00 nithin BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e242]:
+              - cell "1122" [ref=e243]
+              - cell "20/02/2026, 15:31:00" [ref=e244]
+              - cell "nithin" [ref=e245]
+              - cell "BLR-01" [ref=e246]
+              - cell "System Administrator" [ref=e247]
+              - cell "—" [ref=e248]
+              - cell "—" [ref=e249]
+              - cell "OUTSTANDING" [ref=e250]:
+                - generic [ref=e251]: OUTSTANDING
+              - cell "—" [ref=e252]
+              - cell "Edit Comments" [ref=e253]:
+                - generic [ref=e254]:
+                  - button "Edit" [ref=e255] [cursor=pointer]
+                  - button "Comments" [ref=e256] [cursor=pointer]
+            - row "11 20/02/2026, 15:31:00 nithin BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e257]:
+              - cell "11" [ref=e258]
+              - cell "20/02/2026, 15:31:00" [ref=e259]
+              - cell "nithin" [ref=e260]
+              - cell "BLR-01" [ref=e261]
+              - cell "System Administrator" [ref=e262]
+              - cell "—" [ref=e263]
+              - cell "—" [ref=e264]
+              - cell "OUTSTANDING" [ref=e265]:
+                - generic [ref=e266]: OUTSTANDING
+              - cell "—" [ref=e267]
+              - cell "Edit Comments" [ref=e268]:
+                - generic [ref=e269]:
+                  - button "Edit" [ref=e270] [cursor=pointer]
+                  - button "Comments" [ref=e271] [cursor=pointer]
+            - row "4567 20/02/2026, 13:02:00 John Smith RT-001 System Administrator 22/02/2026, 13:03:00 System Administrator RETURNED — Edit Comments" [ref=e272]:
+              - cell "4567" [ref=e273]
+              - cell "20/02/2026, 13:02:00" [ref=e274]
+              - cell "John Smith" [ref=e275]
+              - cell "RT-001" [ref=e276]
+              - cell "System Administrator" [ref=e277]
+              - cell "22/02/2026, 13:03:00" [ref=e278]
+              - cell "System Administrator" [ref=e279]
+              - cell "RETURNED" [ref=e280]:
+                - generic [ref=e281]: RETURNED
+              - cell "—" [ref=e282]
+              - cell "Edit Comments" [ref=e283]:
+                - generic [ref=e284]:
+                  - button "Edit" [ref=e285] [cursor=pointer]
+                  - button "Comments" [ref=e286] [cursor=pointer]
+            - row "12345 20/02/2026, 13:02:00 John Smith RT-001 System Administrator — — OUTSTANDING — Edit Comments" [ref=e287]:
+              - cell "12345" [ref=e288]
+              - cell "20/02/2026, 13:02:00" [ref=e289]
+              - cell "John Smith" [ref=e290]
+              - cell "RT-001" [ref=e291]
+              - cell "System Administrator" [ref=e292]
+              - cell "—" [ref=e293]
+              - cell "—" [ref=e294]
+              - cell "OUTSTANDING" [ref=e295]:
+                - generic [ref=e296]: OUTSTANDING
+              - cell "—" [ref=e297]
+              - cell "Edit Comments" [ref=e298]:
+                - generic [ref=e299]:
+                  - button "Edit" [ref=e300] [cursor=pointer]
+                  - button "Comments" [ref=e301] [cursor=pointer]
+            - row "3456 20/02/2026, 13:02:00 John Smith RT-001 System Administrator — — OUTSTANDING — Edit Comments" [ref=e302]:
+              - cell "3456" [ref=e303]
+              - cell "20/02/2026, 13:02:00" [ref=e304]
+              - cell "John Smith" [ref=e305]
+              - cell "RT-001" [ref=e306]
+              - cell "System Administrator" [ref=e307]
+              - cell "—" [ref=e308]
+              - cell "—" [ref=e309]
+              - cell "OUTSTANDING" [ref=e310]:
+                - generic [ref=e311]: OUTSTANDING
+              - cell "—" [ref=e312]
+              - cell "Edit Comments" [ref=e313]:
+                - generic [ref=e314]:
+                  - button "Edit" [ref=e315] [cursor=pointer]
+                  - button "Comments" [ref=e316] [cursor=pointer]
+            - row "2345 20/02/2026, 13:02:00 John Smith RT-001 System Administrator 22/02/2026, 13:03:00 System Administrator RETURNED — Edit Comments" [ref=e317]:
+              - cell "2345" [ref=e318]
+              - cell "20/02/2026, 13:02:00" [ref=e319]
+              - cell "John Smith" [ref=e320]
+              - cell "RT-001" [ref=e321]
+              - cell "System Administrator" [ref=e322]
+              - cell "22/02/2026, 13:03:00" [ref=e323]
+              - cell "System Administrator" [ref=e324]
+              - cell "RETURNED" [ref=e325]:
+                - generic [ref=e326]: RETURNED
+              - cell "—" [ref=e327]
+              - cell "Edit Comments" [ref=e328]:
+                - generic [ref=e329]:
+                  - button "Edit" [ref=e330] [cursor=pointer]
+                  - button "Comments" [ref=e331] [cursor=pointer]
+            - row "1010 18/02/2026, 13:08:00 nithin BLR-01 Office Staff Member — — OUTSTANDING — Edit Comments" [ref=e332]:
+              - cell "1010" [ref=e333]
+              - cell "18/02/2026, 13:08:00" [ref=e334]
+              - cell "nithin" [ref=e335]
+              - cell "BLR-01" [ref=e336]
+              - cell "Office Staff Member" [ref=e337]
+              - cell "—" [ref=e338]
+              - cell "—" [ref=e339]
+              - cell "OUTSTANDING" [ref=e340]:
+                - generic [ref=e341]: OUTSTANDING
+              - cell "—" [ref=e342]
+              - cell "Edit Comments" [ref=e343]:
+                - generic [ref=e344]:
+                  - button "Edit" [ref=e345] [cursor=pointer]
+                  - button "Comments" [ref=e346] [cursor=pointer]
+            - row "9900 17/02/2026, 15:34:00 Jane Doe BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e347]:
+              - cell "9900" [ref=e348]
+              - cell "17/02/2026, 15:34:00" [ref=e349]
+              - cell "Jane Doe" [ref=e350]
+              - cell "BLR-01" [ref=e351]
+              - cell "System Administrator" [ref=e352]
+              - cell "—" [ref=e353]
+              - cell "—" [ref=e354]
+              - cell "OUTSTANDING" [ref=e355]:
+                - generic [ref=e356]: OUTSTANDING
+              - cell "—" [ref=e357]
+              - cell "Edit Comments" [ref=e358]:
+                - generic [ref=e359]:
+                  - button "Edit" [ref=e360] [cursor=pointer]
+                  - button "Comments" [ref=e361] [cursor=pointer]
+            - row "12909 17/02/2026, 15:34:00 Jane Doe BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e362]:
+              - cell "12909" [ref=e363]
+              - cell "17/02/2026, 15:34:00" [ref=e364]
+              - cell "Jane Doe" [ref=e365]
+              - cell "BLR-01" [ref=e366]
+              - cell "System Administrator" [ref=e367]
+              - cell "—" [ref=e368]
+              - cell "—" [ref=e369]
+              - cell "OUTSTANDING" [ref=e370]:
+                - generic [ref=e371]: OUTSTANDING
+              - cell "—" [ref=e372]
+              - cell "Edit Comments" [ref=e373]:
+                - generic [ref=e374]:
+                  - button "Edit" [ref=e375] [cursor=pointer]
+                  - button "Comments" [ref=e376] [cursor=pointer]
+            - row "BD-002 15/01/2026, 15:30:00 Jane Doe BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e377]:
+              - cell "BD-002" [ref=e378]
+              - cell "15/01/2026, 15:30:00" [ref=e379]
+              - cell "Jane Doe" [ref=e380]
+              - cell "BLR-01" [ref=e381]
+              - cell "System Administrator" [ref=e382]
+              - cell "—" [ref=e383]
+              - cell "—" [ref=e384]
+              - cell "OUTSTANDING" [ref=e385]:
+                - generic [ref=e386]: OUTSTANDING
+              - cell "—" [ref=e387]
+              - cell "Edit Comments" [ref=e388]:
+                - generic [ref=e389]:
+                  - button "Edit" [ref=e390] [cursor=pointer]
+                  - button "Comments" [ref=e391] [cursor=pointer]
+            - row "BD-001 15/01/2026, 15:30:00 Jane Doe BLR-01 System Administrator — — OUTSTANDING — Edit Comments" [ref=e392]:
+              - cell "BD-001" [ref=e393]
+              - cell "15/01/2026, 15:30:00" [ref=e394]
+              - cell "Jane Doe" [ref=e395]
+              - cell "BLR-01" [ref=e396]
+              - cell "System Administrator" [ref=e397]
+              - cell "—" [ref=e398]
+              - cell "—" [ref=e399]
+              - cell "OUTSTANDING" [ref=e400]:
+                - generic [ref=e401]: OUTSTANDING
+              - cell "—" [ref=e402]
+              - cell "Edit Comments" [ref=e403]:
+                - generic [ref=e404]:
+                  - button "Edit" [ref=e405] [cursor=pointer]
+                  - button "Comments" [ref=e406] [cursor=pointer]
+            - row "INV-DATED 01/05/2024, 13:30:00 John Smith RT-001 Office Staff Member — — VOIDED Testing void endpoint Edit Comments" [ref=e407]:
+              - cell "INV-DATED" [ref=e408]
+              - cell "01/05/2024, 13:30:00" [ref=e409]
+              - cell "John Smith" [ref=e410]
+              - cell "RT-001" [ref=e411]
+              - cell "Office Staff Member" [ref=e412]
+              - cell "—" [ref=e413]
+              - cell "—" [ref=e414]
+              - cell "VOIDED" [ref=e415]:
+                - generic [ref=e416]: VOIDED
+              - cell "Testing void endpoint" [ref=e417]
+              - cell "Edit Comments" [ref=e418]:
+                - generic [ref=e419]:
+                  - button "Edit" [ref=e420] [cursor=pointer]
+                  - button "Comments" [ref=e421] [cursor=pointer]

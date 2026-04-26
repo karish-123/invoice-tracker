@@ -11,8 +11,11 @@ import routeRoutes     from './routes/routes';
 import checkoutRoutes  from './routes/checkouts';
 import invoiceRoutes   from './routes/invoices';
 import meRoutes        from './routes/me';
-import approvalRoutes  from './routes/approvals';
-import exportRoutes    from './routes/export';
+import approvalRoutes     from './routes/approvals';
+import exportRoutes       from './routes/export';
+import fieldReportRoutes  from './routes/fieldReports';
+import shopRoutes         from './routes/shops';
+import commentRoutes      from './routes/comments';
 
 const app = express();
 
@@ -33,8 +36,11 @@ app.use('/routes',     routeRoutes);
 app.use('/checkouts',  checkoutRoutes);
 app.use('/invoices',   invoiceRoutes);
 app.use('/me',         meRoutes);
-app.use('/approvals',  approvalRoutes);
-app.use('/export',     exportRoutes);
+app.use('/approvals',     approvalRoutes);
+app.use('/export',        exportRoutes);
+app.use('/field-reports', fieldReportRoutes);
+app.use('/shops',         shopRoutes);
+app.use('/comments',      commentRoutes);
 
 // ── 404 ─────────────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));

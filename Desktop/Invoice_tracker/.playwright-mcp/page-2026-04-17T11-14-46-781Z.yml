@@ -1,0 +1,85 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "Infobells" [ref=e7]
+        - paragraph [ref=e8]: Infobells Invoice Tracker
+      - paragraph [ref=e9]: System Administrator
+      - generic [ref=e10]: ADMIN
+    - navigation [ref=e11]:
+      - link "Outstanding" [ref=e13] [cursor=pointer]:
+        - /url: /outstanding
+      - link "Master Invoices" [ref=e15] [cursor=pointer]:
+        - /url: /master
+      - link "Old Invoices" [ref=e17] [cursor=pointer]:
+        - /url: /old-invoices
+      - link "Invoices for Delivery" [ref=e19] [cursor=pointer]:
+        - /url: /pending
+      - link "Issued Invoices" [ref=e21] [cursor=pointer]:
+        - /url: /issue
+      - link "Return Invoices" [ref=e23] [cursor=pointer]:
+        - /url: /return
+      - link "Paid Invoices" [ref=e25] [cursor=pointer]:
+        - /url: /paid
+      - link "Invoice Search" [ref=e27] [cursor=pointer]:
+        - /url: /invoices
+      - link "Export Data" [ref=e29] [cursor=pointer]:
+        - /url: /export
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Admin
+        - link "Field Reports" [ref=e32] [cursor=pointer]:
+          - /url: /field-reports/approvals
+      - link "Approvals" [ref=e34] [cursor=pointer]:
+        - /url: /approvals
+      - link "Users" [ref=e36] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Executives" [ref=e38] [cursor=pointer]:
+        - /url: /admin/executives
+      - link "Routes" [ref=e40] [cursor=pointer]:
+        - /url: /admin/routes
+      - link "Shops" [ref=e42] [cursor=pointer]:
+        - /url: /admin/shops
+      - link "Reports" [ref=e44] [cursor=pointer]:
+        - /url: /reports
+    - button "Sign out" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - generic [ref=e48]:
+      - heading "Master Invoices" [level=1] [ref=e49]
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: Route
+            - combobox [ref=e54]:
+              - option "Select route…"
+              - option "BLR-01 — south" [selected]
+              - option "RT-001 — North District Route"
+              - option "RT-002 — South District Route"
+              - option "RT-003 — East District Route"
+          - generic [ref=e55]:
+            - generic [ref=e56]: Shop (optional)
+            - combobox [ref=e57]:
+              - option "Select shop…" [selected]
+          - generic [ref=e58]:
+            - generic [ref=e59]: Date/Time (optional — defaults to now)
+            - textbox [ref=e60]
+        - generic [ref=e61]:
+          - generic [ref=e62]: Invoice Numbers
+          - table [ref=e70]:
+            - rowgroup [ref=e71]:
+              - 'row "Invoice # Remarks" [ref=e72]':
+                - 'columnheader "Invoice #" [ref=e73]'
+                - columnheader "Remarks" [ref=e74]
+                - columnheader [ref=e75]
+            - rowgroup [ref=e76]:
+              - row "TEST-999 ×" [ref=e77]:
+                - cell "TEST-999" [ref=e78]
+                - cell [ref=e79]:
+                  - textbox "Optional remarks…" [ref=e80]
+                - cell "×" [ref=e81]:
+                  - button "×" [ref=e82] [cursor=pointer]
+          - generic [ref=e63]:
+            - textbox "Invoice number, then Enter" [active] [ref=e64]
+            - button "Add" [ref=e65] [cursor=pointer]
+          - button "Paste many at once" [ref=e66] [cursor=pointer]
+          - paragraph [ref=e67]: 1 invoice added
+        - button "Submit" [ref=e68] [cursor=pointer]

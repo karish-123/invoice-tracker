@@ -1,0 +1,89 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img "Infobells" [ref=e7]
+        - paragraph [ref=e8]: Infobells Invoice Tracker
+      - paragraph [ref=e9]: System Administrator
+      - generic [ref=e10]: ADMIN
+    - navigation [ref=e11]:
+      - link "Outstanding" [ref=e13] [cursor=pointer]:
+        - /url: /outstanding
+      - link "Master Invoices" [ref=e15] [cursor=pointer]:
+        - /url: /master
+      - link "Old Invoices" [ref=e17] [cursor=pointer]:
+        - /url: /old-invoices
+      - link "Invoices for Delivery" [ref=e19] [cursor=pointer]:
+        - /url: /pending
+      - link "Issued Invoices" [ref=e21] [cursor=pointer]:
+        - /url: /issue
+      - link "Return Invoices" [ref=e23] [cursor=pointer]:
+        - /url: /return
+      - link "Paid Invoices" [ref=e25] [cursor=pointer]:
+        - /url: /paid
+      - link "Invoice Search" [ref=e27] [cursor=pointer]:
+        - /url: /invoices
+      - link "Export Data" [ref=e29] [cursor=pointer]:
+        - /url: /export
+      - generic [ref=e30]:
+        - paragraph [ref=e31]: Admin
+        - link "Field Reports" [ref=e32] [cursor=pointer]:
+          - /url: /field-reports/approvals
+      - link "Approvals" [ref=e34] [cursor=pointer]:
+        - /url: /approvals
+      - link "Users" [ref=e36] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Executives" [ref=e38] [cursor=pointer]:
+        - /url: /admin/executives
+      - link "Routes" [ref=e40] [cursor=pointer]:
+        - /url: /admin/routes
+      - link "Shops" [ref=e42] [cursor=pointer]:
+        - /url: /admin/shops
+      - link "Reports" [ref=e44] [cursor=pointer]:
+        - /url: /reports
+    - button "Sign out" [ref=e46] [cursor=pointer]
+  - main [ref=e47]:
+    - generic [ref=e48]:
+      - generic [ref=e49]:
+        - heading "Routes" [level=1] [ref=e50]
+        - button "+ Add Route" [ref=e51] [cursor=pointer]
+      - table [ref=e53]:
+        - rowgroup [ref=e54]:
+          - 'row "Route # Description Status" [ref=e55]':
+            - 'columnheader "Route #" [ref=e56]'
+            - columnheader "Description" [ref=e57]
+            - columnheader "Status" [ref=e58]
+            - columnheader [ref=e59]
+        - rowgroup [ref=e60]:
+          - row "BLR-01 south Active Edit Delete" [ref=e61]:
+            - cell "BLR-01" [ref=e62]
+            - cell "south" [ref=e63]
+            - cell "Active" [ref=e64]
+            - cell "Edit Delete" [ref=e65]:
+              - generic [ref=e66]:
+                - button "Edit" [ref=e67] [cursor=pointer]
+                - button "Delete" [ref=e68] [cursor=pointer]
+          - row "RT-001 North District Route Active Edit Delete" [ref=e69]:
+            - cell "RT-001" [ref=e70]
+            - cell "North District Route" [ref=e71]
+            - cell "Active" [ref=e72]
+            - cell "Edit Delete" [ref=e73]:
+              - generic [ref=e74]:
+                - button "Edit" [ref=e75] [cursor=pointer]
+                - button "Delete" [ref=e76] [cursor=pointer]
+          - row "RT-002 South District Route Active Edit Delete" [ref=e77]:
+            - cell "RT-002" [ref=e78]
+            - cell "South District Route" [ref=e79]
+            - cell "Active" [ref=e80]
+            - cell "Edit Delete" [ref=e81]:
+              - generic [ref=e82]:
+                - button "Edit" [ref=e83] [cursor=pointer]
+                - button "Delete" [ref=e84] [cursor=pointer]
+          - row "RT-003 East District Route Active Edit Delete" [ref=e85]:
+            - cell "RT-003" [ref=e86]
+            - cell "East District Route" [ref=e87]
+            - cell "Active" [ref=e88]
+            - cell "Edit Delete" [ref=e89]:
+              - generic [ref=e90]:
+                - button "Edit" [ref=e91] [cursor=pointer]
+                - button "Delete" [ref=e92] [cursor=pointer]

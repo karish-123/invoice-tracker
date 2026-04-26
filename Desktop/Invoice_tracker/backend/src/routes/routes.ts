@@ -15,10 +15,10 @@ const createSchema = z.object({
   isActive:    z.boolean().optional(),
 });
 
-// ── READ — ADMIN + OFFICE_STAFF ───────────────────────────────────────────────
+// ── READ — ADMIN + OFFICE_STAFF + EXECUTIVE ──────────────────────────────────
 
 // GET /routes
-router.get('/', authorize(Role.ADMIN, Role.OFFICE_STAFF), async (_req, res, next) => {
+router.get('/', authorize(Role.ADMIN, Role.OFFICE_STAFF, Role.EXECUTIVE), async (_req, res, next) => {
   try {
     const list = await prisma.route.findMany({ orderBy: { routeNumber: 'asc' } });
     res.json(list);
@@ -26,7 +26,7 @@ router.get('/', authorize(Role.ADMIN, Role.OFFICE_STAFF), async (_req, res, next
 });
 
 // GET /routes/:id
-router.get('/:id', authorize(Role.ADMIN, Role.OFFICE_STAFF), async (req, res, next) => {
+router.get('/:id', authorize(Role.ADMIN, Role.OFFICE_STAFF, Role.EXECUTIVE), async (req, res, next) => {
   try {
     const route = await prisma.route.findUnique({ where: { id: req.params.id } });
     if (!route) { res.status(404).json({ error: 'Route not found' }); return; }

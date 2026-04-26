@@ -5,6 +5,9 @@ import type {
   Checkout, BatchResult, InvoiceHistory, MeOutstanding, MeHistoryItem,
   ApprovalRequest, ApprovalActionResult, ApprovalStatus, CheckoutHistory,
   ApprovalRequestType, PendingInvoice,
+  Shop, FieldReport, FieldReportApproveResult, BulkShopResult,
+  FieldReportStatus, FieldReportRemark, FieldReportApprovalStatus,
+  Comment, CommentEntityType, DailyActivity,
 } from '../types';
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -68,11 +71,15 @@ export const deleteRoute = (id: string) =>
 // ── Checkouts (ADMIN + OFFICE_STAFF) ─────────────────────────────────────────
 
 export const addMasterInvoices = (data: {
-  routeId: string; invoiceNumbers: string[];
+  routeId: string;
+  shopId?: string;
+  outDatetime?: string;
+  invoices: { invoiceNumber: string; remarks?: string; invoiceAmount?: number }[];
 }) => client.post<BatchResult>('/checkouts/master', data).then(r => r.data);
 
 export const addOldInvoices = (data: {
-  routeId: string; invoiceNumbers: string[];
+  routeId: string;
+  invoices: { invoiceNumber: string; invoiceAmount?: number }[];
 }) => client.post<BatchResult>('/checkouts/old-invoices', data).then(r => r.data);
 
 export const getPendingInvoices = (params?: { routeId?: string }) =>
@@ -84,7 +91,7 @@ export const issueInvoices = (data: {
 }) => client.post<BatchResult>('/checkouts/issue', data).then(r => r.data);
 
 export const returnInvoices = (data: {
-  invoiceNumbers: string[]; inDatetime?: string;
+  invoiceNumbers: string[]; inDatetime?: string; remarks?: string;
 }) => client.post<BatchResult>('/checkouts/return', data).then(r => r.data);
 
 export const markPaymentReceived = (invoiceNumbers: string[]) =>
@@ -102,9 +109,9 @@ export const voidCheckout = (id: string, voidReason: string, returnToPending?: b
   client.post<Checkout>(`/checkouts/${id}/void`, { voidReason, returnToPending }).then(r => r.data);
 
 export const updateCheckout = (id: string, data: {
-  routeId?: string; executiveId?: string | null;
+  routeId?: string; shopId?: string | null; executiveId?: string | null;
   invoiceNumber?: string; outDatetime?: string;
-  status?: string;
+  status?: string; invoiceAmount?: number | null;
 }) => client.patch<CheckoutHistory>(`/checkouts/${id}`, data).then(r => r.data);
 
 // ── Invoices (any authenticated) ──────────────────────────────────────────────
@@ -151,14 +158,140 @@ export const approveRequest = (id: string) =>
 export const rejectRequest = (id: string, reviewReason: string) =>
   client.post<ApprovalRequest>(`/approvals/${id}/reject`, { reviewReason }).then(r => r.data);
 
-// ── CSV Export (browser download — not Axios fetch) ───────────────────────────
+// ── Shops ─────────────────────────────────────────────────────────────────────
 
-export function buildExportUrl(
-  path: '/export/history.csv' | '/export/outstanding.csv',
+export const getShops = (params?: { routeId?: string; includeInactive?: boolean }) =>
+  client.get<Shop[]>('/shops', { params }).then(r => r.data);
+
+export const createShop = (routeId: string, name: string) =>
+  client.post<Shop>('/shops', { routeId, name }).then(r => r.data);
+
+export const updateShop = (id: string, data: { name?: string; isActive?: boolean }) =>
+  client.patch<Shop>(`/shops/${id}`, data).then(r => r.data);
+
+export const bulkCreateShops = (rows: { routeNumber: string; shopName: string }[]) =>
+  client.post<BulkShopResult>('/shops/bulk', { rows }).then(r => r.data);
+
+// ── Field Reports ─────────────────────────────────────────────────────────────
+
+export const createFieldReport = (data: {
+  routeId:      string;
+  shopId?:      string;
+  newShopName?: string;
+  isNewShop?:   boolean;
+  status:       FieldReportStatus;
+  apprValue?:   number;
+  remark:       FieldReportRemark;
+  customRemark?: string;
+  orderTakenBy: string;
+  visitDate:    string;
+}) => client.post<FieldReport>('/field-reports', data).then(r => r.data);
+
+export const getFieldReports = (params?: {
+  executiveId?:    string;
+  routeId?:        string;
+  approvalStatus?: FieldReportApprovalStatus;
+}) => client.get<FieldReport[]>('/field-reports', { params }).then(r => r.data);
+
+export const updateFieldReport = (id: string, data: {
+  routeId?:      string;
+  shopId?:       string | null;
+  newShopName?:  string | null;
+  isNewShop?:    boolean;
+  status?:       FieldReportStatus;
+  apprValue?:    number | null;
+  remark?:       FieldReportRemark;
+  customRemark?: string | null;
+  orderTakenBy?: string;
+  visitDate?:    string;
+}) => client.patch<FieldReport>(`/field-reports/${id}`, data).then(r => r.data);
+
+export const approveFieldReport = (id: string, data: {
+  invoices?: { invoiceNumber: string; invoiceAmount?: number }[];
+  invoiceNumbers?: string[];
+  reviewRemark?:   string;
+}) => client.post<FieldReportApproveResult>(`/field-reports/${id}/approve`, data).then(r => r.data);
+
+export const rejectFieldReport = (id: string, reviewRemark: string) =>
+  client.post<FieldReport>(`/field-reports/${id}/reject`, { reviewRemark }).then(r => r.data);
+
+// ── Comments ──────────────────────────────────────────────────────────────────
+
+export const getComments = (entityType: CommentEntityType, entityId: string) =>
+  client.get<Comment[]>('/comments', { params: { entityType, entityId } }).then(r => r.data);
+
+export const addComment = (entityType: CommentEntityType, entityId: string, text: string) =>
+  client.post<Comment>('/comments', { entityType, entityId, text }).then(r => r.data);
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+
+export const getPendingOnDate = (date: string) =>
+  client.get<Checkout[]>('/checkouts/pending-on-date', { params: { date } }).then(r => r.data);
+
+export const getDailyActivity = (params: { dateFrom: string; dateTo: string; executiveId?: string }) =>
+  client.get<DailyActivity>('/checkouts/daily-activity', { params }).then(r => r.data);
+
+// ── CSV Export (authenticated blob download) ──────────────────────────────────
+
+export async function downloadCsv(
+  path: string,
   params: Record<string, string>,
-): string {
-  const token = localStorage.getItem('token') ?? '';
-  const base  = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000';
-  const qs    = new URLSearchParams({ ...params, token }).toString();
-  return `${base}${path}?${qs}`;
+  filename: string,
+): Promise<void> {
+  const res = await client.get<Blob>(path, { params, responseType: 'blob' });
+  const url = URL.createObjectURL(res.data);
+  const a   = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
+
+// ── Dashboard (JSON summary for Export page) ──────────────────────────────────
+
+export interface DashboardTotals {
+  checkoutCount:   number;
+  outstandingCount: number;
+  returnedCount:   number;
+  paidCount:       number;
+  voidedCount:     number;
+  invoiceValue:    number;
+  collectedValue:  number;
+}
+
+export interface DashboardByExecutive {
+  executiveId:     string;
+  name:            string;
+  issuedCount:     number;
+  returnedCount:   number;
+  paidCount:       number;
+  outstandingCount: number;
+  invoiceValue:    number;
+  collectedValue:  number;
+}
+
+export interface DashboardByRoute {
+  routeId:         string;
+  routeNumber:     string;
+  issuedCount:     number;
+  paidCount:       number;
+  outstandingCount: number;
+  invoiceValue:    number;
+}
+
+export interface DashboardResult {
+  totals:      DashboardTotals;
+  byExecutive: DashboardByExecutive[];
+  byRoute:     DashboardByRoute[];
+  rows:        CheckoutHistory[];
+}
+
+export const getDashboard = (params: {
+  dateFrom?:    string;
+  dateTo?:      string;
+  executiveId?: string;
+  routeId?:     string;
+  status?:      string;
+}) => client.get<DashboardResult>('/export/dashboard', { params }).then(r => r.data);

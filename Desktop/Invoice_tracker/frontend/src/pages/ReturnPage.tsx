@@ -13,6 +13,7 @@ export default function ReturnPage() {
 
   const [invoices,    setInvoices]    = useState<string[]>([]);
   const [inDatetime,  setInDatetime]  = useState('');
+  const [remarks,     setRemarks]     = useState('');
   const [results,     setResults]     = useState<IssueResult[] | null>(null);
   const [error,       setError]       = useState('');
   const [loading,     setLoading]     = useState(false);
@@ -57,6 +58,7 @@ export default function ReturnPage() {
     try {
       const payload: Parameters<typeof api.returnInvoices>[0] = { invoiceNumbers: invoices };
       if (isAdmin && inDatetime) payload.inDatetime = new Date(inDatetime).toISOString();
+      if (remarks.trim()) payload.remarks = remarks.trim();
       const { results: res } = await api.returnInvoices(payload);
       setResults(res);
       setInvoices([]);
@@ -122,6 +124,17 @@ export default function ReturnPage() {
             />
           </div>
         )}
+
+        <div>
+          <label className="label">Remarks <span className="text-gray-400 font-normal">(optional)</span></label>
+          <input
+            type="text"
+            value={remarks}
+            onChange={e => setRemarks(e.target.value)}
+            placeholder="e.g. Received partial return, items damaged…"
+            className="input"
+          />
+        </div>
 
         <div className="flex flex-col gap-2">
           <button type="submit" disabled={loading} className="btn-primary">

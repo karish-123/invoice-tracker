@@ -1,28 +1,33 @@
 import { useState, useEffect, FormEvent } from 'react';
 import * as api from '../api/endpoints';
-import type { InvoiceHistory, CheckoutHistory, Executive, AppRoute, CheckoutStatus } from '../types';
+import type { InvoiceHistory, CheckoutHistory, Executive, AppRoute, CheckoutStatus, Shop } from '../types';
 import StatusBadge from '../components/StatusBadge';
 import Spinner     from '../components/Spinner';
 import { useAuth } from '../context/AuthContext';
-import { buildExportUrl } from '../api/endpoints';
+import { downloadCsv } from '../api/endpoints';
+import CommentSection from '../components/CommentSection';
+import PrintButton from '../components/PrintButton';
 
 const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString() : '—';
 
 function HistoryRow({
-  c, isAdmin, routes, executives, onUpdated,
+  c, isAdmin, routes, executives, shops, onUpdated,
 }: {
   c: CheckoutHistory;
   isAdmin: boolean;
   routes: AppRoute[];
   executives: Executive[];
+  shops: Shop[];
   onUpdated: (updated: CheckoutHistory) => void;
 }) {
   const [editing,    setEditing]    = useState(false);
   const [routeId,    setRouteId]    = useState(c.route.id);
+  const [shopId,     setShopId]     = useState(c.shop?.id ?? '');
   const [execId,     setExecId]     = useState(c.executive?.id ?? '');
   const [invNum,     setInvNum]     = useState(c.invoiceNumber);
   const [outDt,      setOutDt]      = useState(c.outDatetime ? new Date(c.outDatetime).toISOString().slice(0, 16) : '');
   const [statusVal,  setStatusVal]  = useState(c.status);
+  const [amountVal,  setAmountVal]  = useState(c.invoiceAmount != null ? String(c.invoiceAmount) : '');
   const [saving,     setSaving]     = useState(false);
   const [saveErr,    setSaveErr]    = useState('');
 
@@ -30,13 +35,16 @@ function HistoryRow({
     setSaving(true);
     setSaveErr('');
     try {
-      const payload: { routeId?: string; executiveId?: string | null; invoiceNumber?: string; outDatetime?: string; status?: string } = {};
+      const payload: { routeId?: string; shopId?: string | null; executiveId?: string | null; invoiceNumber?: string; outDatetime?: string; status?: string; invoiceAmount?: number | null } = {};
       if (routeId   !== c.route.id) payload.routeId = routeId;
+      if (shopId    !== (c.shop?.id ?? '')) payload.shopId = shopId || null;
       if (execId    !== (c.executive?.id ?? '')) payload.executiveId = execId || null;
       if (invNum    !== c.invoiceNumber) payload.invoiceNumber = invNum;
       if (statusVal !== c.status) payload.status = statusVal;
       const origDt = new Date(c.outDatetime).toISOString().slice(0, 16);
       if (outDt !== origDt) payload.outDatetime = new Date(outDt).toISOString();
+      const origAmt = c.invoiceAmount != null ? String(c.invoiceAmount) : '';
+      if (amountVal !== origAmt) payload.invoiceAmount = amountVal ? parseFloat(amountVal) : null;
       if (Object.keys(payload).length === 0) { setEditing(false); setSaving(false); return; }
       const updated = await api.updateCheckout(c.id, payload);
       onUpdated(updated);
@@ -50,10 +58,12 @@ function HistoryRow({
 
   const handleCancel = () => {
     setRouteId(c.route.id);
+    setShopId(c.shop?.id ?? '');
     setExecId(c.executive?.id ?? '');
     setInvNum(c.invoiceNumber);
     setOutDt(c.outDatetime ? new Date(c.outDatetime).toISOString().slice(0, 16) : '');
     setStatusVal(c.status);
+    setAmountVal(c.invoiceAmount != null ? String(c.invoiceAmount) : '');
     setSaveErr('');
     setEditing(false);
   };
@@ -67,6 +77,17 @@ function HistoryRow({
             value={invNum}
             onChange={e => setInvNum(e.target.value)}
             className="input text-xs py-0.5 font-mono w-28"
+          />
+        </td>
+        <td className="td">
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={amountVal}
+            onChange={e => setAmountVal(e.target.value)}
+            placeholder="Amount"
+            className="input text-xs py-0.5 w-24"
           />
         </td>
         <td className="td">
@@ -90,10 +111,22 @@ function HistoryRow({
         <td className="td">
           <select
             value={routeId}
-            onChange={e => setRouteId(e.target.value)}
+            onChange={e => { setRouteId(e.target.value); setShopId(''); }}
             className="input text-xs py-0.5"
           >
             {routes.map(r => <option key={r.id} value={r.id}>{r.routeNumber}</option>)}
+          </select>
+        </td>
+        <td className="td">
+          <select
+            value={shopId}
+            onChange={e => setShopId(e.target.value)}
+            className="input text-xs py-0.5"
+          >
+            <option value="">— none —</option>
+            {shops.filter(s => s.routeId === routeId).map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
           </select>
         </td>
         <td className="td">{c.outByUser.name}</td>
@@ -129,9 +162,11 @@ function HistoryRow({
   return (
     <tr className="hover:bg-gray-50">
       <td className="td font-mono text-xs">{c.invoiceNumber}</td>
+      <td className="td">{c.invoiceAmount != null ? `₹${c.invoiceAmount.toLocaleString('en-IN')}` : '—'}</td>
       <td className="td whitespace-nowrap">{fmt(c.outDatetime)}</td>
       <td className="td">{c.executive?.name ?? '—'}</td>
       <td className="td">{c.route.routeNumber}</td>
+      <td className="td">{c.shop?.name ?? '—'}</td>
       <td className="td">{c.outByUser.name}</td>
       <td className="td whitespace-nowrap">{fmt(c.inDatetime)}</td>
       <td className="td">{c.inByUser?.name ?? '—'}</td>
@@ -139,16 +174,19 @@ function HistoryRow({
       <td className="td text-xs text-gray-500 max-w-xs truncate" title={c.voidReason ?? ''}>
         {c.voidReason ?? '—'}
       </td>
-      {isAdmin && (
-        <td className="td">
-          <button
-            onClick={() => setEditing(true)}
-            className="text-xs text-blue-600 hover:underline"
-          >
-            Edit
-          </button>
-        </td>
-      )}
+      <td className="td">
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Edit
+            </button>
+          )}
+          <CommentSection entityType="CHECKOUT" entityId={c.id} compact />
+        </div>
+      </td>
     </tr>
   );
 }
@@ -173,13 +211,14 @@ export default function InvoiceHistoryPage() {
   const [filterStatus,    setFilterStatus]    = useState<CheckoutStatus | ''>('');
   const [executives,      setExecutives]      = useState<Executive[]>([]);
   const [routes,          setRoutes]          = useState<AppRoute[]>([]);
+  const [shops,           setShops]           = useState<Shop[]>([]);
 
   useEffect(() => {
     if (isExecutive) {
       api.getRoutes().then(setRoutes).catch(() => {});
     } else {
-      Promise.all([api.getExecutives(), api.getRoutes()])
-        .then(([execs, rts]) => { setExecutives(execs); setRoutes(rts); })
+      Promise.all([api.getExecutives(), api.getRoutes(), api.getShops()])
+        .then(([execs, rts, shs]) => { setExecutives(execs); setRoutes(rts); setShops(shs); })
         .catch(() => {});
     }
   }, [isExecutive]);
@@ -246,12 +285,14 @@ export default function InvoiceHistoryPage() {
     } else { setSortCol(col); setSortDir('asc'); }
   };
   const sortArrow = (col: string) => sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
-  const getSortVal = (row: CheckoutHistory, col: string): string => {
+  const getSortVal = (row: CheckoutHistory, col: string): string | number => {
     switch (col) {
       case 'invoiceNumber': return row.invoiceNumber;
+      case 'amount':        return row.invoiceAmount ?? -1;
       case 'issuedAt':      return row.outDatetime;
       case 'executive':     return row.executive?.name ?? '';
       case 'route':         return row.route.routeNumber;
+      case 'shop':          return row.shop?.name ?? '';
       case 'issuedBy':      return row.outByUser.name;
       case 'returnedAt':    return row.inDatetime ?? '';
       case 'returnedBy':    return row.inByUser?.name ?? '';
@@ -279,7 +320,8 @@ export default function InvoiceHistoryPage() {
     ? [...allRows].sort((a, b) => {
         const va = getSortVal(a, sortCol);
         const vb = getSortVal(b, sortCol);
-        return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        const cmp = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
+        return sortDir === 'asc' ? cmp : -cmp;
       })
     : allRows;
 
@@ -378,12 +420,15 @@ export default function InvoiceHistoryPage() {
                 {singleData && ` (${singleData.totalCheckouts} checkout${singleData.totalCheckouts !== 1 ? 's' : ''})`}
               </span>
             </div>
-            <button
-              onClick={() => { window.location.href = buildExportUrl('/export/history.csv', buildExportParams()); }}
-              className="btn-ghost text-sm"
-            >
-              Export CSV
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => downloadCsv('/export/history.csv', buildExportParams(), 'invoice-history.csv').catch(() => alert('Export failed.'))}
+                className="btn-ghost text-sm no-print"
+              >
+                Export CSV
+              </button>
+              <PrintButton title="Invoice History" />
+            </div>
           </div>
 
           {allRows.length === 0 ? (
@@ -395,9 +440,11 @@ export default function InvoiceHistoryPage() {
                   <tr>
                     {[
                       ['invoiceNumber', 'Invoice #'],
+                      ['amount', 'Amount'],
                       ['issuedAt', 'Issued At'],
                       ['executive', 'Executive'],
                       ['route', 'Route'],
+                      ['shop', 'Shop'],
                       ['issuedBy', 'Issued By'],
                       ['returnedAt', 'Returned At'],
                       ['returnedBy', 'Returned By'],
@@ -408,7 +455,7 @@ export default function InvoiceHistoryPage() {
                         {label}{sortArrow(key)}
                       </th>
                     ))}
-                    {isAdmin && <th className="th" />}
+                    <th className="th" />
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -419,6 +466,7 @@ export default function InvoiceHistoryPage() {
                       isAdmin={isAdmin}
                       routes={routes}
                       executives={executives}
+                      shops={shops}
                       onUpdated={handleRowUpdated}
                     />
                   ))}

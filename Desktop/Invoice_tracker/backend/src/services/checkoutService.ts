@@ -13,11 +13,15 @@ export type PaymentResult   = IssueOneResult;
  * Add a single invoice to the master (pending) pool — no executive assigned yet.
  */
 export async function addMasterOne(
-  tx:            Tx,
-  invoiceNumber: string,
-  routeId:       string,
-  addedAt:       Date,
-  userId:        string,
+  tx:              Tx,
+  invoiceNumber:   string,
+  routeId:         string,
+  addedAt:         Date,
+  userId:          string,
+  fieldReportId?:  string,
+  shopId?:         string,
+  remarks?:        string,
+  invoiceAmount?:  number,
 ): Promise<IssueOneResult> {
   try {
     // Block if already paid
@@ -45,7 +49,13 @@ export async function addMasterOne(
     }
 
     const checkout = await tx.checkout.create({
-      data: { invoiceNumber, routeId, outDatetime: addedAt, outByUserId: userId },
+      data: {
+        invoiceNumber, routeId, outDatetime: addedAt, outByUserId: userId,
+        ...(fieldReportId  ? { fieldReportId }  : {}),
+        ...(shopId         ? { shopId }         : {}),
+        ...(remarks        ? { remarks }        : {}),
+        ...(invoiceAmount != null ? { invoiceAmount } : {}),
+      },
     });
 
     return { invoiceNumber, success: true, checkoutId: checkout.id };
@@ -63,11 +73,12 @@ export async function addMasterOne(
  * be issued from the Issued Invoices tab without going through Master.
  */
 export async function addOldInvoiceOne(
-  tx:            Tx,
-  invoiceNumber: string,
-  routeId:       string,
-  addedAt:       Date,
-  userId:        string,
+  tx:             Tx,
+  invoiceNumber:  string,
+  routeId:        string,
+  addedAt:        Date,
+  userId:         string,
+  invoiceAmount?: number,
 ): Promise<IssueOneResult> {
   try {
     // Block if already paid
@@ -102,6 +113,7 @@ export async function addOldInvoiceOne(
         outByUserId:  userId,
         inDatetime:   addedAt,
         inByUserId:   userId,
+        ...(invoiceAmount != null ? { invoiceAmount } : {}),
       },
     });
 
@@ -174,10 +186,11 @@ export async function issueOne(
       return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} is already checked out` };
     }
 
-    // No pending and no active — try to find routeId from a returned unpaid checkout
+    // No pending and no active — try to find routeId/shopId from a returned unpaid checkout
+    let shopId: string | undefined;
     if (!routeId) {
-      const returned = await tx.$queryRaw<{ route_id: string }[]>`
-        SELECT route_id FROM checkouts
+      const returned = await tx.$queryRaw<{ route_id: string; shop_id: string | null }[]>`
+        SELECT route_id, shop_id FROM checkouts
         WHERE invoice_number = ${invoiceNumber}
           AND in_datetime IS NOT NULL
           AND voided = false
@@ -187,13 +200,14 @@ export async function issueOne(
       `;
       if (returned.length > 0) {
         routeId = returned[0].route_id;
+        shopId  = returned[0].shop_id ?? undefined;
       } else {
         return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} not found in pending pool. Add it via Master Invoices first.` };
       }
     }
 
     const checkout = await tx.checkout.create({
-      data: { invoiceNumber, executiveId, routeId, outDatetime: outAt, outByUserId: userId },
+      data: { invoiceNumber, executiveId, routeId, outDatetime: outAt, outByUserId: userId, ...(shopId ? { shopId } : {}) },
     });
 
     return { invoiceNumber, success: true, checkoutId: checkout.id };
@@ -214,10 +228,11 @@ export async function returnOne(
   invoiceNumber: string,
   inAt:          Date,
   userId:        string,
+  remarks?:      string,
 ): Promise<ReturnOneResult> {
   try {
-    const active = await tx.$queryRaw<{ id: string }[]>`
-      SELECT id FROM checkouts
+    const active = await tx.$queryRaw<{ id: string; remarks: string | null }[]>`
+      SELECT id, remarks FROM checkouts
       WHERE invoice_number = ${invoiceNumber}
         AND in_datetime IS NULL
         AND voided = false
@@ -228,9 +243,14 @@ export async function returnOne(
       return { invoiceNumber, success: false, error: `Invoice ${invoiceNumber} has no active checkout` };
     }
 
+    const existingRemarks = active[0].remarks;
+    const mergedRemarks = remarks
+      ? (existingRemarks ? `${existingRemarks} | Return: ${remarks}` : `Return: ${remarks}`)
+      : existingRemarks;
+
     const checkout = await tx.checkout.update({
       where: { id: active[0].id },
-      data:  { inDatetime: inAt, inByUserId: userId },
+      data:  { inDatetime: inAt, inByUserId: userId, remarks: mergedRemarks },
     });
 
     return { invoiceNumber, success: true, checkoutId: checkout.id };

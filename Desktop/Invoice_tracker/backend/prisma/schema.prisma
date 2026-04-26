@@ -37,6 +37,13 @@ model User {
   approvalRequestsMade     ApprovalRequest[] @relation("RequestedBy")
   approvalRequestsReviewed ApprovalRequest[] @relation("ReviewedBy")
 
+  // Field report relations
+  fieldReportsCreated  FieldReport[] @relation("FieldReportCreatedBy")
+  fieldReportsReviewed FieldReport[] @relation("FieldReportReviewedBy")
+
+  // Comment relations
+  comments Comment[] @relation("CommentCreatedBy")
+
   @@map("users")
 }
 
@@ -45,8 +52,9 @@ model Executive {
   name     String
   isActive Boolean @default(true) @map("is_active")
 
-  checkouts Checkout[]
-  users     User[]     @relation("UserExecutiveLink")
+  checkouts    Checkout[]
+  users        User[]       @relation("UserExecutiveLink")
+  fieldReports FieldReport[]
 
   @@map("executives")
 }
@@ -57,20 +65,41 @@ model Route {
   description String?
   isActive    Boolean @default(true) @map("is_active")
 
-  checkouts Checkout[]
+  checkouts    Checkout[]
+  shops        Shop[]
+  fieldReports FieldReport[]
 
   @@map("routes")
+}
+
+model Shop {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  routeId   String   @map("route_id") @db.Uuid
+  route     Route    @relation(fields: [routeId], references: [id])
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  fieldReports FieldReport[]
+  checkouts    Checkout[]
+
+  @@unique([routeId, name])
+  @@map("shops")
 }
 
 model Checkout {
   id            String   @id @default(uuid()) @db.Uuid
   invoiceNumber String   @map("invoice_number")
+  remarks       String?
 
   executiveId String?    @map("executive_id") @db.Uuid
   executive   Executive? @relation(fields: [executiveId], references: [id])
 
   routeId String @map("route_id") @db.Uuid
   route   Route  @relation(fields: [routeId], references: [id])
+
+  shopId  String? @map("shop_id") @db.Uuid
+  shop    Shop?   @relation(fields: [shopId], references: [id])
 
   outDatetime DateTime @map("out_datetime") @db.Timestamptz
   outByUserId String   @map("out_by_user_id") @db.Uuid
@@ -91,13 +120,77 @@ model Checkout {
   paymentReceivedByUserId  String?   @map("payment_received_by_user_id") @db.Uuid
   paymentReceivedByUser    User?     @relation("PaymentReceivedBy", fields: [paymentReceivedByUserId], references: [id])
 
+  invoiceAmount Decimal? @map("invoice_amount") @db.Decimal(12, 2)
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Optional link back to the field report that originated this master invoice
+  fieldReportId String?      @map("field_report_id") @db.Uuid
+  fieldReport   FieldReport? @relation("FromFieldReport", fields: [fieldReportId], references: [id])
 
   // NOTE: A partial unique index enforcing one active checkout per invoice is added
   // in the migration SQL below (Prisma schema doesn't support partial indexes natively).
   // Constraint: UNIQUE(invoice_number) WHERE in_datetime IS NULL AND voided = false
 
   @@map("checkouts")
+}
+
+// ── Field Reports ─────────────────────────────────────────────────────────────
+
+enum FieldReportStatus {
+  VISITED
+  ORDER_DONE
+  PAYMENT_DONE
+  ORDER_PAYMENT_DONE
+  NEW_SHOP
+}
+
+enum FieldReportRemark {
+  WITH_STAND
+  URGENT
+  PAYMENT_ON_DELIVERY
+  IMMEDIATE_PAYMENT
+  CUSTOM
+}
+
+enum FieldReportApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model FieldReport {
+  id           String            @id @default(uuid()) @db.Uuid
+  routeId      String            @map("route_id") @db.Uuid
+  route        Route             @relation(fields: [routeId], references: [id])
+  shopId       String?           @map("shop_id") @db.Uuid
+  shop         Shop?             @relation(fields: [shopId], references: [id])
+  newShopName  String?           @map("new_shop_name")
+  isNewShop    Boolean           @default(false) @map("is_new_shop")
+  status       FieldReportStatus
+  apprValue    Decimal?          @map("appr_value") @db.Decimal(12, 2)
+  remark       FieldReportRemark
+  customRemark String?           @map("custom_remark")
+  orderTakenBy String            @map("order_taken_by")
+  visitDate    DateTime          @map("visit_date") @db.Date
+
+  executiveId     String    @map("executive_id") @db.Uuid
+  executive       Executive @relation(fields: [executiveId], references: [id])
+  createdByUserId String    @map("created_by_user_id") @db.Uuid
+  createdByUser   User      @relation("FieldReportCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  approvalStatus   FieldReportApprovalStatus @default(PENDING) @map("approval_status")
+  reviewedByUserId String?                   @map("reviewed_by_user_id") @db.Uuid
+  reviewedByUser   User?                     @relation("FieldReportReviewedBy", fields: [reviewedByUserId], references: [id])
+  reviewedAt       DateTime?                 @map("reviewed_at") @db.Timestamptz
+  reviewRemark     String?                   @map("review_remark")
+
+  checkouts Checkout[] @relation("FromFieldReport")
+
+  @@index([approvalStatus])
+  @@index([executiveId])
+  @@map("field_reports")
 }
 
 // ── Approval Requests ────────────────────────────────────────────────────────
@@ -127,4 +220,26 @@ model ApprovalRequest {
   payload           Json
 
   @@map("approval_requests")
+}
+
+// ── Comments ──────────────────────────────────────────────────────────────────
+
+enum CommentEntityType {
+  CHECKOUT
+  FIELD_REPORT
+  APPROVAL_REQUEST
+  SHOP
+}
+
+model Comment {
+  id              String            @id @default(uuid()) @db.Uuid
+  entityType      CommentEntityType @map("entity_type")
+  entityId        String            @map("entity_id") @db.Uuid
+  text            String
+  createdByUserId String            @map("created_by_user_id") @db.Uuid
+  createdByUser   User              @relation("CommentCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([entityType, entityId])
+  @@map("comments")
 }

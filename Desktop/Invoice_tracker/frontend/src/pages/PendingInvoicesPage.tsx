@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as api from '../api/endpoints';
 import type { PendingInvoice, AppRoute } from '../types';
-import Spinner from '../components/Spinner';
-import Modal   from '../components/Modal';
+import Spinner      from '../components/Spinner';
+import Modal        from '../components/Modal';
+import PrintButton  from '../components/PrintButton';
 
 const fmt = (iso: string) => new Date(iso).toLocaleString();
 
@@ -25,12 +26,13 @@ export default function PendingInvoicesPage() {
     } else { setSortCol(col); setSortDir('asc'); }
   };
   const sortArrow = (col: string) => sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
-  const getSortVal = (row: PendingInvoice, col: string): string => {
+  const getSortVal = (row: PendingInvoice, col: string): string | number => {
     switch (col) {
       case 'invoiceNumber': return row.invoiceNumber;
       case 'route':         return row.route.routeNumber;
       case 'dateAdded':     return row.outDatetime;
       case 'addedBy':       return row.outByUser.name;
+      case 'amount':        return row.invoiceAmount ?? -1;
       default:              return '';
     }
   };
@@ -83,7 +85,10 @@ export default function PendingInvoicesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Invoices for Delivery</h1>
-        <span className="text-sm text-gray-500">{rows.length} record{rows.length !== 1 ? 's' : ''}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">{rows.length} record{rows.length !== 1 ? 's' : ''}</span>
+          <PrintButton title="Pending Invoices" />
+        </div>
       </div>
 
       <p className="text-sm text-gray-500">
@@ -118,6 +123,7 @@ export default function PendingInvoicesPage() {
                   ['route', 'Route'],
                   ['dateAdded', 'Date Added'],
                   ['addedBy', 'Added By'],
+                  ['amount', 'Amount'],
                 ].map(([key, label]) => (
                   <th key={key} className="th cursor-pointer select-none whitespace-nowrap" onClick={() => toggleSort(key)}>
                     {label}{sortArrow(key)}
@@ -129,7 +135,7 @@ export default function PendingInvoicesPage() {
             <tbody className="divide-y">
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="td text-center text-gray-400 py-8">
+                  <td colSpan={6} className="td text-center text-gray-400 py-8">
                     No pending invoices — all master invoices have been issued.
                   </td>
                 </tr>
@@ -138,7 +144,8 @@ export default function PendingInvoicesPage() {
                 ? [...rows].sort((a, b) => {
                     const va = getSortVal(a, sortCol);
                     const vb = getSortVal(b, sortCol);
-                    return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+                    const cmp = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
+                    return sortDir === 'asc' ? cmp : -cmp;
                   })
                 : rows
               ).map(row => (
@@ -147,6 +154,7 @@ export default function PendingInvoicesPage() {
                   <td className="td">{row.route.routeNumber}</td>
                   <td className="td whitespace-nowrap">{fmt(row.outDatetime)}</td>
                   <td className="td">{row.outByUser.name}</td>
+                  <td className="td">{row.invoiceAmount != null ? `₹${row.invoiceAmount.toLocaleString('en-IN')}` : '—'}</td>
                   <td className="td">
                     <button
                       onClick={() => { setVoidTarget(row); setVoidReason(''); setVoidError(''); }}

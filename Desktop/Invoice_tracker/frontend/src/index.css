@@ -17,3 +17,44 @@
   .th        { @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider; }
   .td        { @apply px-4 py-3 text-sm text-gray-700; }
 }
+
+/* ── Print styles ────────────────────────────────────────────────────────── */
+
+.print-only { display: none; }
+
+@media print {
+  @page { margin: 1cm; size: A4; }
+
+  body { background: white !important; color: black !important; }
+
+  /* Hide app chrome */
+  aside,
+  nav,
+  .no-print { display: none !important; }
+
+  main { overflow: visible !important; padding: 0 !important; }
+
+  /* Reset layouts for print */
+  .card { box-shadow: none !important; border: 1px solid #888 !important; }
+  button { display: none !important; }
+  input, select, textarea { border: none !important; padding: 0 !important; background: transparent !important; }
+  .btn, .btn-ghost, .btn-primary, .btn-danger { display: none !important; }
+
+  /* Show print-only elements */
+  .print-only { display: block !important; }
+
+  /* Force background colors/borders (for status badges etc.) */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  /* Tables */
+  table { page-break-inside: auto; }
+  tr    { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+
+  /* Landscape helper */
+  .print-landscape { @apply block; }
+  .print-landscape { page: landscape; }
+}
+
+@page landscape { size: A4 landscape; }

@@ -22,6 +22,7 @@ router.get('/outstanding', async (req: AuthRequest, res, next) => {
       where: { executiveId, inDatetime: null, voided: false },
       include: {
         route:     { select: { id: true, routeNumber: true } },
+        shop:      { select: { id: true, name: true } },
         outByUser: { select: { id: true, name: true } },
       },
       orderBy: { outDatetime: 'asc' },
@@ -32,6 +33,7 @@ router.get('/outstanding', async (req: AuthRequest, res, next) => {
         id:            c.id,
         invoiceNumber: c.invoiceNumber,
         route:         c.route,
+        shop:          c.shop,
         outDatetime:   c.outDatetime,
         outByUser:     c.outByUser,
         status:        'OUTSTANDING',
@@ -55,6 +57,7 @@ router.get('/history', async (req: AuthRequest, res, next) => {
       where:   { executiveId },
       include: {
         route:     { select: { id: true, routeNumber: true } },
+        shop:      { select: { id: true, name: true } },
         outByUser: { select: { id: true, name: true } },
         inByUser:  { select: { id: true, name: true } },
       },
@@ -66,6 +69,7 @@ router.get('/history', async (req: AuthRequest, res, next) => {
         id:            c.id,
         invoiceNumber: c.invoiceNumber,
         route:         c.route,
+        shop:          c.shop,
         outDatetime:   c.outDatetime,
         outByUser:     c.outByUser,
         inDatetime:    c.inDatetime,

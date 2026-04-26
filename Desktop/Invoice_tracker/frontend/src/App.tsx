@@ -14,11 +14,15 @@ import MyApprovalsPage    from './pages/MyApprovalsPage';
 import UsersPage          from './pages/admin/UsersPage';
 import ExecutivesPage     from './pages/admin/ExecutivesPage';
 import RoutesAdminPage    from './pages/admin/RoutesAdminPage';
-import MyOutstandingPage  from './pages/executive/MyOutstandingPage';
+import ShopsAdminPage     from './pages/admin/ShopsAdminPage';
+import MyOutstandingPage          from './pages/executive/MyOutstandingPage';
+import FieldReportPage            from './pages/executive/FieldReportPage';
+import FieldReportApprovalsPage   from './pages/FieldReportApprovalsPage';
 import PendingInvoicesPage from './pages/PendingInvoicesPage';
 import OldInvoicesPage     from './pages/OldInvoicesPage';
 import PaidInvoicesPage    from './pages/PaidInvoicesPage';
 import ExportPage          from './pages/ExportPage';
+import ReportsPage         from './pages/ReportsPage';
 
 function RoleRedirect() {
   const { user } = useAuth();
@@ -68,9 +72,17 @@ export default function App() {
                 <Route path="/my-approvals" element={<MyApprovalsPage />} />
               </Route>
 
+              {/* ADMIN + OFFICE_STAFF — Field Reports + Shops management + Reports */}
+              <Route element={<ProtectedRoute roles={['ADMIN', 'OFFICE_STAFF']} />}>
+                <Route path="/field-reports/approvals" element={<FieldReportApprovalsPage />} />
+                <Route path="/admin/shops"             element={<ShopsAdminPage />} />
+                <Route path="/reports"                 element={<ReportsPage />} />
+              </Route>
+
               {/* EXECUTIVE only */}
               <Route element={<ProtectedRoute roles={['EXECUTIVE']} />}>
-                <Route path="/me/outstanding" element={<MyOutstandingPage />} />
+                <Route path="/me/outstanding"   element={<MyOutstandingPage />} />
+                <Route path="/me/field-report"  element={<FieldReportPage />} />
               </Route>
             </Route>
           </Route>
