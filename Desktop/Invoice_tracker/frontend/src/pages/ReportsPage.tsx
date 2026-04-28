@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import * as api from '../api/endpoints';
-import type { Checkout, DailyActivity, PerExecutiveSummary, Executive, FieldReport } from '../types';
+import type { DailyActivity, PerExecutiveSummary, Executive, FieldReport } from '../types';
 import Spinner from '../components/Spinner';
 import PrintButton from '../components/PrintButton';
 import { useSort } from '../hooks/useSort';
 import { useAuth } from '../context/AuthContext';
 import { STATUS_LABEL } from '../constants/fieldReport';
 
-const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString() : '—';
 const today = () => new Date().toISOString().slice(0, 10);
 const fmtRs = (v: number) =>
   `₹${v.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -183,20 +182,7 @@ function ActivityDashboard() {
             )}
           </div>
 
-          {/* Issued / Returned / Payments — hidden on print */}
-          <div className="no-print space-y-6">
-            {data.issued.length > 0 && (
-              <ActivityTable title="Issued" rows={data.issued} columns={['invoiceNumber','executive','route','outDatetime','invoiceAmount']} />
-            )}
-            {data.returned.length > 0 && (
-              <ActivityTable title="Returned" rows={data.returned} columns={['invoiceNumber','executive','route','inDatetime','invoiceAmount']} />
-            )}
-            {data.payments.length > 0 && (
-              <ActivityTable title="Payments Received" rows={data.payments} columns={['invoiceNumber','executive','route','paymentReceivedAt','invoiceAmount']} />
-            )}
-          </div>
-
-          {data.issued.length === 0 && data.returned.length === 0 && data.payments.length === 0 && data.fieldReports.length === 0 && (
+          {data.fieldReports.length === 0 && (
             <p className="text-gray-400 text-center py-8">No activity in the selected range.</p>
           )}
         </div>
@@ -221,19 +207,26 @@ function SummaryCard({ label, count, color }: { label: string; count: number; co
 }
 
 function FieldReportSummary({ fieldReports }: { fieldReports: FieldReport[] }) {
-  const shopsVisited  = fieldReports.length;
-  const ordersCount   = fieldReports.filter(fr => fr.status === 'ORDER_DONE' || fr.status === 'ORDER_PAYMENT_DONE').length;
-  const paymentsCount = fieldReports.filter(fr => fr.status === 'PAYMENT_DONE' || fr.status === 'ORDER_PAYMENT_DONE').length;
-  const newShops      = fieldReports.filter(fr => fr.isNewShop).length;
-  const approxValue   = fieldReports.reduce((sum, fr) => sum + (fr.apprValue ? parseFloat(fr.apprValue) : 0), 0);
+  const active        = fieldReports.filter(fr => fr.approvalStatus !== 'REJECTED');
+  const shopsVisited  = active.length;
+  const ordersCount   = active.filter(fr => fr.status === 'ORDER_DONE' || fr.status === 'ORDER_PAYMENT_DONE').length;
+  const paymentsCount = active.filter(fr => fr.status === 'PAYMENT_DONE' || fr.status === 'ORDER_PAYMENT_DONE').length;
+  const newShops      = active.filter(fr => fr.isNewShop).length;
+  const orderValue    = active
+    .filter(fr => fr.status === 'ORDER_DONE' || fr.status === 'ORDER_PAYMENT_DONE')
+    .reduce((sum, fr) => sum + (fr.apprValue ? parseFloat(fr.apprValue) : 0), 0);
+  const paymentValue  = active
+    .filter(fr => fr.status === 'PAYMENT_DONE' || fr.status === 'ORDER_PAYMENT_DONE')
+    .reduce((sum, fr) => sum + (fr.apprValue ? parseFloat(fr.apprValue) : 0), 0);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-4 border-b bg-white no-print">
-      <MetricBox label="Shops Visited"   value={shopsVisited}  color="orange" />
-      <MetricBox label="Orders"          value={ordersCount}   color="blue" />
-      <MetricBox label="Payments"        value={paymentsCount} color="green" />
-      <MetricBox label="New Shops"       value={newShops}      color="purple" />
-      <MetricBox label="Approx Order Value" value={approxValue > 0 ? fmtRs(approxValue) : '—'} color="teal" />
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 p-4 border-b bg-white no-print">
+      <MetricBox label="Shops Visited"  value={shopsVisited}  color="orange" />
+      <MetricBox label="Orders"         value={ordersCount}   color="blue" />
+      <MetricBox label="Payments"       value={paymentsCount} color="green" />
+      <MetricBox label="New Shops"      value={newShops}      color="purple" />
+      <MetricBox label="Order Value"    value={orderValue > 0 ? fmtRs(orderValue) : '—'} color="teal" />
+      <MetricBox label="Payment Value"  value={paymentValue > 0 ? fmtRs(paymentValue) : '—'} color="indigo" />
     </div>
   );
 }
@@ -245,71 +238,12 @@ function MetricBox({ label, value, color }: { label: string; value: string | num
     green:  'bg-green-50 text-green-700 border-green-200',
     purple: 'bg-purple-50 text-purple-700 border-purple-200',
     teal:   'bg-teal-50 text-teal-700 border-teal-200',
+    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   };
   return (
     <div className={`rounded-lg border p-3 ${colors[color]}`}>
       <p className="text-xl font-bold">{value}</p>
       <p className="text-xs font-medium mt-0.5">{label}</p>
-    </div>
-  );
-}
-
-function ActivityTable({ title, rows, columns }: { title: string; rows: Checkout[]; columns: string[] }) {
-  const colLabel: Record<string, string> = {
-    invoiceNumber: 'Invoice #', executive: 'Executive', route: 'Route',
-    outDatetime: 'Issued At', inDatetime: 'Returned At', paymentReceivedAt: 'Paid At',
-    invoiceAmount: 'Amount',
-  };
-
-  const sort = useSort<Checkout>((r, col) => {
-    switch (col) {
-      case 'invoiceNumber':     return r.invoiceNumber;
-      case 'executive':         return r.executive?.name ?? '';
-      case 'route':             return r.route.routeNumber;
-      case 'outDatetime':       return r.outDatetime;
-      case 'inDatetime':        return r.inDatetime ?? '';
-      case 'paymentReceivedAt': return r.paymentReceivedAt ?? '';
-      case 'invoiceAmount':     return r.invoiceAmount ?? 0;
-      default:                  return '';
-    }
-  });
-
-  const cellValue = (row: Checkout, col: string) => {
-    switch (col) {
-      case 'invoiceNumber':     return row.invoiceNumber;
-      case 'executive':         return row.executive?.name ?? '—';
-      case 'route':             return row.route.routeNumber;
-      case 'outDatetime':       return fmt(row.outDatetime);
-      case 'inDatetime':        return fmt(row.inDatetime);
-      case 'paymentReceivedAt': return fmt(row.paymentReceivedAt);
-      case 'invoiceAmount':     return row.invoiceAmount != null ? fmtRs(row.invoiceAmount) : '—';
-      default:                  return '';
-    }
-  };
-
-  return (
-    <div className="card overflow-hidden">
-      <div className="px-4 py-3 border-b bg-gray-50">
-        <h3 className="font-semibold text-sm text-gray-700">{title} ({rows.length})</h3>
-      </div>
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b">
-          <tr>
-            {columns.map(c => (
-              <th key={c} className="th cursor-pointer select-none whitespace-nowrap" onClick={() => sort.toggleSort(c)}>
-                {colLabel[c] ?? c}{sort.sortArrow(c)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {sort.sortRows(rows).map(r => (
-            <tr key={r.id} className="hover:bg-gray-50">
-              {columns.map(c => <td key={c} className="td">{cellValue(r, c)}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

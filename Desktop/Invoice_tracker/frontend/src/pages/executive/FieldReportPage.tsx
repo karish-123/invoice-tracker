@@ -52,7 +52,7 @@ export default function FieldReportPage() {
   const [isNewShop,    setIsNewShop]    = useState(false);
   const [status,       setStatus]       = useState<FieldReportStatus>('VISITED');
   const [apprValue,    setApprValue]    = useState('');
-  const [remark,       setRemark]       = useState<FieldReportRemark>('WITH_STAND');
+  const [remark,       setRemark]       = useState<FieldReportRemark>('DEFAULT');
   const [customRemark, setCustomRemark] = useState('');
   const [orderTakenBy, setOrderTakenBy] = useState(user?.name ?? '');
   const [visitDate,    setVisitDate]    = useState(() => new Date().toISOString().slice(0, 10));
@@ -102,7 +102,7 @@ export default function FieldReportPage() {
       setSuccess('Field report submitted successfully.');
       // Reset form
       setShopId(''); setNewShopName(''); setIsNewShop(false); setStatus('VISITED');
-      setApprValue(''); setRemark('WITH_STAND'); setCustomRemark('');
+      setApprValue(''); setRemark('DEFAULT'); setCustomRemark('');
       setOrderTakenBy(user?.name ?? '');
       setVisitDate(new Date().toISOString().slice(0, 10));
     } catch (err: unknown) {

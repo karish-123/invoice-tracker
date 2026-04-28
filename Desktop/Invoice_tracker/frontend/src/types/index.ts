@@ -159,6 +159,7 @@ export type FieldReportStatus =
   | 'NEW_SHOP';
 
 export type FieldReportRemark =
+  | 'DEFAULT'
   | 'WITH_STAND'
   | 'URGENT'
   | 'PAYMENT_ON_DELIVERY'

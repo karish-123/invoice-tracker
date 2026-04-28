@@ -8,11 +8,12 @@ export const STATUS_OPTIONS: { value: FieldReportStatus; label: string }[] = [
 ];
 
 export const REMARK_OPTIONS: { value: FieldReportRemark; label: string }[] = [
+  { value: 'CUSTOM',              label: 'Custom Message' },
+  { value: 'DEFAULT',             label: 'Default' },
   { value: 'WITH_STAND',          label: 'With Stand' },
   { value: 'URGENT',              label: 'Urgent' },
   { value: 'PAYMENT_ON_DELIVERY', label: 'Payment on Delivery' },
   { value: 'IMMEDIATE_PAYMENT',   label: 'Immediate Payment' },
-  { value: 'CUSTOM',              label: 'Custom Message' },
 ];
 
 export const STATUS_LABEL: Record<string, string> = Object.fromEntries(

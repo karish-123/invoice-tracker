@@ -146,6 +146,7 @@ enum FieldReportStatus {
 }
 
 enum FieldReportRemark {
+  DEFAULT
   WITH_STAND
   URGENT
   PAYMENT_ON_DELIVERY
