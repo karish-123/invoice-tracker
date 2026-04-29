@@ -74,6 +74,7 @@ export interface PendingInvoice {
   id:            string;
   invoiceNumber: string;
   route:         { id: string; routeNumber: string };
+  shop:          { id: string; name: string } | null;
   outDatetime:   string;
   outByUser:     UserRef;
   voided:        boolean;

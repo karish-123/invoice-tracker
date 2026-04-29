@@ -30,6 +30,7 @@ export default function PendingInvoicesPage() {
     switch (col) {
       case 'invoiceNumber': return row.invoiceNumber;
       case 'route':         return row.route.routeNumber;
+      case 'shop':          return row.shop?.name ?? '';
       case 'dateAdded':     return row.outDatetime;
       case 'addedBy':       return row.outByUser.name;
       case 'amount':        return row.invoiceAmount ?? -1;
@@ -121,6 +122,7 @@ export default function PendingInvoicesPage() {
                 {[
                   ['invoiceNumber', 'Invoice #'],
                   ['route', 'Route'],
+                  ['shop', 'Shop'],
                   ['dateAdded', 'Date Added'],
                   ['addedBy', 'Added By'],
                   ['amount', 'Amount'],
@@ -135,7 +137,7 @@ export default function PendingInvoicesPage() {
             <tbody className="divide-y">
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="td text-center text-gray-400 py-8">
+                  <td colSpan={7} className="td text-center text-gray-400 py-8">
                     No pending invoices — all master invoices have been issued.
                   </td>
                 </tr>
@@ -152,6 +154,7 @@ export default function PendingInvoicesPage() {
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="td font-mono font-medium">{row.invoiceNumber}</td>
                   <td className="td">{row.route.routeNumber}</td>
+                  <td className="td">{row.shop?.name ?? '—'}</td>
                   <td className="td whitespace-nowrap">{fmt(row.outDatetime)}</td>
                   <td className="td">{row.outByUser.name}</td>
                   <td className="td">{row.invoiceAmount != null ? `₹${row.invoiceAmount.toLocaleString('en-IN')}` : '—'}</td>
