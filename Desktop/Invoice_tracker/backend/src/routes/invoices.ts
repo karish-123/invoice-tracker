@@ -15,6 +15,7 @@ router.use(authenticate);
 const historyInclude = {
   executive:             { select: { id: true, name: true } },
   route:                 { select: { id: true, routeNumber: true } },
+  shop:                  { select: { id: true, name: true } },
   outByUser:             { select: { id: true, name: true } },
   inByUser:              { select: { id: true, name: true } },
   voidedByUser:          { select: { id: true, name: true } },
@@ -31,8 +32,11 @@ function formatHistoryRow(c: HistoryRow) {
   return {
     id:                    c.id,
     invoiceNumber:         c.invoiceNumber,
+    invoiceAmount:         c.invoiceAmount,
+    remarks:               c.remarks,
     executive:             c.executive,
     route:                 c.route,
+    shop:                  c.shop,
     outDatetime:           c.outDatetime,
     outByUser:             c.outByUser,
     inDatetime:            c.inDatetime,

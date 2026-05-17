@@ -93,7 +93,7 @@ export default function PaidInvoicesPage() {
               const params: Record<string, string> = {};
               if (filterExec)  params.executiveId = filterExec;
               if (filterRoute) params.routeId     = filterRoute;
-              downloadCsv('/export/paid.csv', params, 'paid-invoices.csv').catch(() => alert('Export failed.'));
+              downloadCsv('/export/history.csv', { ...params, status: 'PAID' }, 'paid-invoices.csv').catch(() => alert('Export failed.'));
             }}
             className="btn-ghost text-sm no-print"
           >
@@ -138,7 +138,7 @@ export default function PaidInvoicesPage() {
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {loading ? <Spinner text="Loading..." /> : (
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>

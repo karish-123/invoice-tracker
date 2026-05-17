@@ -25,5 +25,5 @@ export const REMARK_LABEL: Record<string, string> = Object.fromEntries(
 );
 
 export const ORDER_STATUSES = new Set<FieldReportStatus>([
-  'ORDER_DONE', 'PAYMENT_DONE', 'ORDER_PAYMENT_DONE',
+  'ORDER_DONE', 'ORDER_PAYMENT_DONE',
 ]);

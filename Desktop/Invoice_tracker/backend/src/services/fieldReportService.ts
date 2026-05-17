@@ -88,6 +88,8 @@ export async function approveFieldReport(
   const checkoutResults: { invoiceNumber: string; success: boolean; checkoutId?: string; error?: string }[] = [];
 
   await prisma.$transaction(async (tx) => {
+    let resolvedShopId: string | undefined = report.shopId ?? undefined;
+
     // If new shop (isNewShop flag or legacy NEW_SHOP status) and no shopId yet, create the shop and link it
     if ((report.isNewShop || report.status === FieldReportStatus.NEW_SHOP) && !report.shopId && report.newShopName) {
       const shop = await tx.shop.upsert({
@@ -96,6 +98,7 @@ export async function approveFieldReport(
         create: { routeId: report.routeId, name: report.newShopName },
       });
       await tx.fieldReport.update({ where: { id }, data: { shopId: shop.id, newShopName: null } });
+      resolvedShopId = shop.id;
     }
 
     // If order/payment status, create pending master invoice(s)
@@ -103,7 +106,7 @@ export async function approveFieldReport(
       for (const inv of invoices) {
         const result = await addMasterOne(
           tx, inv.invoiceNumber, report.routeId, now, reviewerId, id,
-          undefined, undefined, inv.invoiceAmount,
+          resolvedShopId, undefined, inv.invoiceAmount,
         );
         checkoutResults.push(result);
       }

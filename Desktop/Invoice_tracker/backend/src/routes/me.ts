@@ -74,7 +74,7 @@ router.get('/history', async (req: AuthRequest, res, next) => {
         outByUser:     c.outByUser,
         inDatetime:    c.inDatetime,
         inByUser:      c.inByUser,
-        status:        c.voided ? 'VOIDED' : c.inDatetime ? 'RETURNED' : 'OUTSTANDING',
+        status:        c.voided ? 'VOIDED' : c.paymentReceived ? 'PAID' : c.inDatetime ? 'RETURNED' : 'OUTSTANDING',
       }))
     );
   } catch (err) {

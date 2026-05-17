@@ -167,7 +167,7 @@ export default function OutstandingPage() {
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
       {loading ? <Spinner text="Loading…" /> : (
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b">
               <tr>

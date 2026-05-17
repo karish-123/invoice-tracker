@@ -86,8 +86,7 @@ export const getPendingInvoices = (params?: { routeId?: string }) =>
   client.get<PendingInvoice[]>('/checkouts/pending', { params }).then(r => r.data);
 
 export const issueInvoices = (data: {
-  executiveId?: string; routeId?: string;
-  outDatetime?: string; invoiceNumbers: string[];
+  executiveId: string; outDatetime?: string; invoiceNumbers: string[];
 }) => client.post<BatchResult>('/checkouts/issue', data).then(r => r.data);
 
 export const returnInvoices = (data: {

@@ -209,7 +209,7 @@ export default function ShopsAdminPage() {
       </div>
 
       {/* Existing Shops List */}
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
           <h2 className="font-semibold text-sm text-gray-700">All Shops ({shops.length})</h2>
         </div>

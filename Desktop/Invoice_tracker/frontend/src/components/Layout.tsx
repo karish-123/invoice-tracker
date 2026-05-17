@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/infobells_logo.jpeg';
@@ -7,6 +8,7 @@ interface NavItem { to: string; label: string; section?: string }
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [sideOpen, setSideOpen] = useState(false);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -55,14 +57,13 @@ export default function Layout() {
       isActive ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
     }`;
 
-  return (
-    <div className="flex h-screen overflow-hidden">
-      {/* ── Sidebar ── */}
-      <aside className="w-56 bg-gray-900 text-white flex flex-col flex-shrink-0">
-        {/* Branding */}
-        <div className="px-4 py-4 border-b border-gray-700">
+  const sidebarContent = (
+    <aside className="w-64 bg-gray-900 text-white flex flex-col h-full">
+      {/* Branding */}
+      <div className="px-4 py-4 border-b border-gray-700 flex items-start justify-between gap-2">
+        <div>
           <div className="flex items-center gap-2 mb-1">
-            <img src={logo} alt="Infobells" className="h-8 w-8 rounded" />
+            <img src={logo} alt="Infobells" className="h-8 w-8 rounded flex-shrink-0" />
             <p className="font-bold text-sm leading-tight">Infobells Invoice Tracker</p>
           </div>
           <p className="text-xs text-gray-300 mt-1 truncate">{user?.name}</p>
@@ -70,42 +71,93 @@ export default function Layout() {
             {user?.role?.replace('_', ' ')}
           </span>
         </div>
+        {/* Close button — mobile only */}
+        <button
+          className="md:hidden text-gray-400 hover:text-white p-1 -mt-1 -mr-1 flex-shrink-0"
+          onClick={() => setSideOpen(false)}
+          aria-label="Close menu"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {allItems.map((item, i) => {
-            const showSection =
-              item.section && (i === 0 || allItems[i - 1].section !== item.section);
-            return (
-              <div key={item.to}>
-                {showSection && (
-                  <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider px-3 pt-4 pb-1">
-                    {item.section}
-                  </p>
-                )}
-                <NavLink to={item.to} className={linkCls}>
-                  {item.label}
-                </NavLink>
-              </div>
-            );
-          })}
-        </nav>
+      {/* Nav */}
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        {allItems.map((item, i) => {
+          const showSection =
+            item.section && (i === 0 || allItems[i - 1].section !== item.section);
+          return (
+            <div key={item.to}>
+              {showSection && (
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider px-3 pt-4 pb-1">
+                  {item.section}
+                </p>
+              )}
+              <NavLink to={item.to} className={linkCls} onClick={() => setSideOpen(false)}>
+                {item.label}
+              </NavLink>
+            </div>
+          );
+        })}
+      </nav>
 
-        {/* Logout */}
-        <div className="p-3 border-t border-gray-700">
-          <button
-            onClick={handleLogout}
-            className="w-full text-left text-sm text-gray-400 hover:text-white px-3 py-2 rounded hover:bg-gray-700 transition-colors"
-          >
-            Sign out
-          </button>
+      {/* Logout */}
+      <div className="p-3 border-t border-gray-700">
+        <button
+          onClick={handleLogout}
+          className="w-full text-left text-sm text-gray-400 hover:text-white px-3 py-2 rounded hover:bg-gray-700 transition-colors"
+        >
+          Sign out
+        </button>
+      </div>
+    </aside>
+  );
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* ── Desktop sidebar (always visible) ── */}
+      <div className="hidden md:flex flex-shrink-0">
+        {sidebarContent}
+      </div>
+
+      {/* ── Mobile sidebar overlay ── */}
+      {sideOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={() => setSideOpen(false)}
+          />
+          {/* Drawer */}
+          <div className="relative z-10 flex-shrink-0">
+            {sidebarContent}
+          </div>
         </div>
-      </aside>
+      )}
 
-      {/* ── Main ── */}
-      <main className="flex-1 overflow-auto p-6">
-        <Outlet />
-      </main>
+      {/* ── Main content ── */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {/* Mobile top bar */}
+        <header className="md:hidden flex items-center gap-3 bg-gray-900 text-white px-4 py-3 flex-shrink-0">
+          <button
+            onClick={() => setSideOpen(true)}
+            className="text-gray-300 hover:text-white"
+            aria-label="Open menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <img src={logo} alt="Infobells" className="h-7 w-7 rounded" />
+          <span className="font-semibold text-sm">Infobells Invoice Tracker</span>
+        </header>
+
+        <main className="flex-1 overflow-auto p-3 md:p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

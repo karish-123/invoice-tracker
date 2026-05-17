@@ -68,7 +68,7 @@ export default function MyOutstandingPage() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {/* Outstanding */}
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <div className="px-4 py-3 border-b bg-gray-50">
           <h2 className="font-semibold text-sm text-gray-700">Outstanding Invoices</h2>
         </div>
@@ -127,7 +127,7 @@ export default function MyOutstandingPage() {
       </div>
 
       {showHistory && (
-        <div className="card overflow-hidden">
+        <div className="card overflow-x-auto">
           <div className="px-4 py-3 border-b bg-gray-50">
             <h2 className="font-semibold text-sm text-gray-700">Full History</h2>
           </div>

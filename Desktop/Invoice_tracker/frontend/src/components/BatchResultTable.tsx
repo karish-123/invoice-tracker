@@ -12,7 +12,7 @@ export default function BatchResultTable({ results, className = '' }: Props) {
         <span className="text-green-700">{ok} succeeded</span>
         {fail > 0 && <span className="text-red-700">{fail} failed</span>}
       </div>
-      <div className="card overflow-hidden">
+      <div className="card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>

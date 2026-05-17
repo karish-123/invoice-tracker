@@ -105,7 +105,7 @@ function ActivityDashboard() {
 
           {/* Per-executive breakdown — prints */}
           {data.perExecutive.length > 0 && (
-            <div className="card overflow-hidden">
+            <div className="card overflow-x-auto">
               <div className="px-4 py-3 border-b bg-gray-50">
                 <h3 className="font-semibold text-sm text-gray-700">Per Executive Performance</h3>
               </div>
@@ -140,7 +140,7 @@ function ActivityDashboard() {
           )}
 
           {/* Field Reports summary + table — prints */}
-          <div className="card overflow-hidden">
+          <div className="card overflow-x-auto">
             <div className="px-4 py-3 border-b bg-gray-50">
               <h3 className="font-semibold text-sm text-gray-700">Field Reports ({data.fieldReports.length})</h3>
             </div>

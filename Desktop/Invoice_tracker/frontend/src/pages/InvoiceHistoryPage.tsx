@@ -434,7 +434,7 @@ export default function InvoiceHistoryPage() {
           {allRows.length === 0 ? (
             <p className="text-sm text-gray-400">No records found.</p>
           ) : (
-            <div className="card overflow-hidden">
+            <div className="card overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b">
                   <tr>

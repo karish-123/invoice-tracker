@@ -204,7 +204,7 @@ export default function ExportPage() {
 
           {/* Per-executive breakdown */}
           {data.byExecutive.length > 0 && (
-            <div className="card overflow-hidden">
+            <div className="card overflow-x-auto">
               <div className="px-4 py-3 border-b bg-gray-50">
                 <h2 className="font-semibold text-sm text-gray-700">By Executive</h2>
               </div>
@@ -241,7 +241,7 @@ export default function ExportPage() {
 
           {/* Per-route breakdown */}
           {data.byRoute.length > 0 && (
-            <div className="card overflow-hidden">
+            <div className="card overflow-x-auto">
               <div className="px-4 py-3 border-b bg-gray-50">
                 <h2 className="font-semibold text-sm text-gray-700">By Route</h2>
               </div>
@@ -276,7 +276,7 @@ export default function ExportPage() {
 
           {/* Full rows table */}
           {data.rows.length > 0 && (
-            <div className="card overflow-hidden">
+            <div className="card overflow-x-auto">
               <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
                 <h2 className="font-semibold text-sm text-gray-700">All Invoices ({data.rows.length})</h2>
               </div>
