@@ -1,4 +1,5 @@
 # Invoice Tracker
+<!-- deploy trigger -->
 \
 A full-stack web application for tracking invoice checkouts — issue invoices to field executives, record returns, manage backdate approvals, and export reports. Built for small teams (5–20 users) with role-based access control.
 
